@@ -1,0 +1,27 @@
+{
+    "authEndpoint": "#ECHO_AUTH_PATH_PLACEHOLDER",
+    "authHost": "#ECHO_AUTH_HOST_PLACEHOLDER",
+    "database": "redis",
+    "databaseConfig": {
+        "redis": {
+            "port": "#REDIS_PORT_PLACEHOLDER",
+            "host": "#REDIS_HOST_PLACEHOLDER",
+            "db": "#REDIS_DB_PLACEHOLDER",
+            "password": "#REDIS_PASS_PLACEHOLDER"
+        },
+        "publishPresence": true
+    },
+    "port": "#ECHO_PORT_PLACEHOLDER",
+    "protocol": "#ECHO_PROTOCOL_PLACEHOLDER",
+    "sslCertPath": "#ECHO_SSL_CERTPATH_PLACEHOLDER",
+    "sslKeyPath": "#ECHO_SSL_KEYPATH_PLACEHOLDER",
+    "sslCertChainPath": "#ECHO_SSL_CERTCHAINPATH_PLACEHOLDER",
+    "sslPassphrase": "#ECHO_SSL_PASSPHRASE_PLACEHOLDER",
+    "devMode": false,
+    "apiOriginAllow": {
+        "allowCors": true,
+        "allowOrigin": "http://127.0.0.1",
+        "allowMethods": "GET, POST",
+        "allowHeaders": "Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept, Authorization, X-CSRF-TOKEN, X-Socket-Id"
+    }
+}

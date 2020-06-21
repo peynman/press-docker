@@ -1,0 +1,332 @@
+version: '3.4'
+
+networks:
+    backend_local:
+        driver: bridge
+    frontend_local:
+        driver: bridge
+    backend:
+        external:
+            name: backend
+    frontend:
+        external:
+            name: frontend
+
+services:
+    ### PHP-FPM ######
+    php-fpm:
+        image: ${SWARM_REGISTERY}/php-fpm:latest
+        build:
+            context: ./php-fpm
+            args:
+                - PHP_VERSION=${PHP_VERSION}
+                - PHP_TIMEZONE=${PHP_TIMEZONE}
+                - PHP_BASH=${PHP_BASH}
+                - PHP_FPM_RUNTIME_MODE=${APP_RUNTIME_MODE}
+                - PHP_INSTALL_REDIS=${PHP_INSTALL_REDIS}
+                - PHP_INSTALL_XDEBUG=${PHP_INSTALL_XDEBUG}
+                - PHP_INSTALL_GD=${PHP_INSTALL_GD}
+                - PHP_INSTALL_MYSQL=${PHP_INSTALL_MYSQL}
+                - PHP_INSTALL_INTL=${PHP_INSTALL_INTL}
+                - PHP_INSTALL_AMQLIB=${PHP_INSTALL_AMQLIB}
+                - PHP_INSTALL_PCNTL=${PHP_INSTALL_PCNTL}
+                - PHP_INSTALL_COMPOSER=${PHP_INSTALL_COMPOSER}
+                - PHP_INSTALL_BCMATH=${PHP_INSTALL_BCMATH}
+                - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
+                - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
+        volumes:
+            - ${LOGS_PATH}/php-fpm:/var/log/php-fpm
+            - ${MEDIA_PATH}:/var/media
+            - ${APACHE2_APP_PATH}:/var/www
+        networks:
+            - ${BACKEND_NETWORK}
+        restart: unless-stopped
+        deploy:
+            mode: replicated
+            replicas: 5
+            placement:
+              constraints:
+                  - node.labels.region == ir
+
+    ### DATABASE ####
+    mariadb:
+        image: ${SWARM_REGISTERY}/mariadb:latest
+        build:
+            context: ./mariadb
+            args:
+                - MARIADB_VERSION=${MARIADB_VERSION}
+                - MARIADB_RUNTIME_MODE=${APP_RUNTIME_MODE}
+        environment:
+            - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+            - MYSQL_ALLOW_EMPTY_PASSWORD=no
+            - MARIADB_DB1_NAME=${MARIADB_DB1_NAME}
+            - MARIADB_DB1_USER=${MARIADB_DB1_USER}
+            - MARIADB_DB1_PASS=${MARIADB_DB1_PASS}
+        volumes:
+            - ${LOGS_PATH}/mariadb:/var/log/mysql
+            - ${DATA_PATH}/mariadb:/var/lib/mysql
+        networks:
+            - ${BACKEND_NETWORK}
+        restart: unless-stopped
+        deploy:
+            mode: global
+            placement:
+              constraints:
+                  - node.labels.region == ir
+
+    ### REDIS ######
+    redis:
+        image: ${SWARM_REGISTERY}/redis:latest
+        build:
+            context: ./redis
+            args:
+                - REDIS_VERSION=${REDIS_VERSION}
+                - REDIS_BIND=${REDIS_BIND}
+                - REDIS_PASSWORD=${REDIS_PASSWORD}
+                - REDIS_LOGFILE=${REDIS_LOGFILE}
+                - REDIS_RUNTIME_MODE=${APP_RUNTIME_MODE}
+        sysctls:
+            net.core.somaxconn: 1024
+        volumes:
+            - ${DATA_PATH}/redis:/data
+            - ${LOGS_PATH}/redis:/var/log/redis
+        networks:
+            - ${BACKEND_NETWORK}
+        restart: unless-stopped
+        deploy:
+            mode: global
+            placement:
+              constraints:
+                  - node.labels.region == ir
+
+    ### INFLUXDB ###
+    influxdb:
+      image: ${SWARM_REGISTERY}/influxdb:latest
+      build:
+          context: ./influxdb
+      environment:
+          INFLUXDB_DB: ${INFLUXDB_DB}
+          INFLUXDB_HTTP_AUTH_ENABLED: "true"
+          INFLUXDB_USER: ${INFLUXDB_USER}
+          INFLUXDB_USER_PASSWORD: ${INFLUXDB_PASS}
+      volumes:
+          - ${DATA_PATH}/influxdb:/root/.influxdbv2
+          - ${LOGS_PATH}/influxdb:/var/log/influxdbv2
+      ports:
+          - "${INFLUXDB_WEB_PORT}:9999"
+      restart: unless-stopped
+      networks:
+          - ${BACKEND_NETWORK}
+      deploy:
+          mode: global
+          placement:
+            constraints:
+                - node.labels.region == admin
+
+    ### APACHE2 ######
+    apache2:
+      image: ${SWARM_REGISTERY}/apache2:latest
+      build: ./apache2
+      environment:
+          - WEB_PHP_SOCKET=${APACHE2_PHP_UPSTREAM_CONTAINER}:${APACHE2_PHP_UPSTREAM_PORT}
+          - WEB_PHP_TIMEOUT=${APACHE2_PHP_UPSTREAM_TIMEOUT}
+          - WEB_ROOT=${APACHE2_DOCUMENT_ROOT}
+          - APACHE_RUNTIME_MODE=${APP_RUNTIME_MODE}
+      volumes:
+          - ${LOGS_PATH}/apache2:/var/log/apache2
+          - ${MEDIA_PATH}:/var/media
+          - ${APACHE2_APP_PATH}:/var/www
+      networks:
+          - ${BACKEND_NETWORK}
+          - ${FRONTEND_NETWORK}
+      restart: unless-stopped
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.apache2.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.apache2.entrypoints=web"
+        - "traefik.http.services.apache2.loadbalancer.server.port=80"
+      deploy:
+          mode: replicated
+          replicas: 5
+          placement:
+            constraints:
+                - node.labels.region == ir
+          labels:
+              - "traefik.enable=true"
+              - "traefik.http.routers.apache2.rule=PathPrefix(`/`)"
+              - "traefik.http.routers.apache2.entrypoints=web"
+              - "traefik.http.services.apache2.loadbalancer.server.port=80"
+
+    ### LARAVEL ECHO ###
+    laravel-echo:
+      image: ${SWARM_REGISTERY}/laravel-echo:latest
+      build:
+          context: ./laravel-echo
+          args:
+            - ECHO_AUTH_HOST=${ECHO_AUTH_HOST}
+            - ECHO_AUTH_PATH=${ECHO_AUTH_PATH}
+            - ECHO_NODE_VERSION=${ECHO_NODE_VERSION}
+            - ECHO_PORT=${ECHO_PORT}
+            - ECHO_PROTOCOL=${ECHO_PROTOCOL}
+            - ECHO_SSL_CERTPATH=${ECHO_SSL_CERTPATH}
+            - ECHO_SSL_KEYPATH=${ECHO_SSL_KEYPATH}
+            - ECHO_SSL_CERTCHAINPATH=${ECHO_SSL_CERTCHAINPATH}
+            - ECHO_SSL_PASSPHRASE=${ECHO_SSL_PASSPHRASE}
+            - ECHO_REDIS_PORT=${ECHO_REDIS_PORT}
+            - ECHO_REDIS_HOST=${ECHO_REDIS_HOST}
+            - ECHO_REDIS_PASS=${ECHO_REDIS_PASS}
+            - ECHO_REDIS_DB=${ECHO_REDIS_DB}
+            - ECHO_RUNTIME_MODE=${APP_RUNTIME_MODE}
+      ports:
+        - "${ECHO_PORT}:${ECHO_PORT}"
+      networks:
+        - ${BACKEND_NETWORK}
+        - ${FRONTEND_NETWORK}
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.echo.rule=HostRegexp(`echo.onlineacademy.ir`)"
+        - "traefik.http.routers.echo.entrypoints=web"
+        - "traefik.http.services.echo.loadbalancer.server.port=8088"
+      deploy:
+        mode: replicated
+        replicas: 2
+        placement:
+          constraints:
+              - node.labels.region == ir
+        labels:
+              - "traefik.enable=true"
+              - "traefik.http.routers.echo.rule=HostRegexp(`echo.onlineacademy.ir`)"
+              - "traefik.http.routers.echo.entrypoints=web"
+              - "traefik.http.routers.echo.tls.certresolver=letsencrypt"
+              - "traefik.http.services.echo.loadbalancer.server.port=8088"
+
+    ### TRAEFIK ###
+    traefik:
+        image: ${SWARM_REGISTERY}/traefik:latest
+        build:
+            context: ./traefik
+            args:
+                - TRAEFIK_VERSION=${TRAEFIK_VERSION}
+        volumes:
+            - ${LOGS_PATH}/traefik:/var/log/traefik
+            - ${DATA_PATH}/traefik/letsencrypt:/letsencrypt
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./traefik/configs:/file-providers
+        networks:
+            - ${FRONTEND_NETWORK}
+            - ${BACKEND_NETWORK}
+        ports:
+            - target: 80
+              published:  ${TRAEFIK_WEB_PORT}
+              mode: host
+            - target: 443
+              published: ${TRAEFIK_WEB_SECURED_PORT}
+              mode: host
+            - target: 8080
+              published: ${TRAEFIK_DASHBOARD_PORT}
+              mode: host
+        deploy:
+            mode: global
+            placement:
+                constraints:
+                    - node.labels.region == ir
+    # ### GRAFANA ###
+    # grafana:
+    #   image: ${SWARM_REGISTERY}/grafana:latest
+    #   build:
+    #       context: ./grafana
+    #       args:
+    #           - GRAFANA_VERSION=${GRAFANA_VERSION}
+    #           - GRAFANA_ADMIN_USER=${GRAFANA_ADMIN_USER}
+    #           - GRAFANA_ADMIN_PASS=${GRAFANA_ADMIN_PASS}
+    #   environment:
+    #       - GF_INSTALL_PLUGINS=${GRAFANA_INSTALL_PLUGINS}
+    #   volumes:
+    #       - ${DATA_PATH}/grafana:/var/lib/grafana
+    #       - ${LOGS_PATH}/grafana:/var/log/grafana
+    #   ports:
+    #       - "${GRAFANA_WEB_PORT}:3000"
+    #   networks:
+    #       - ${BACKEND_NETWORK}
+    #   deploy:
+    #       mode: global
+
+    # ### PHPMYADMIN ###
+    # phpmyadmin:
+    #     image: phpmyadmin/phpmyadmin
+    #     environment:
+    #         - PMA_ARBITRARY=1
+    #     ports:
+    #         - "${PHP_MYADMIN_PORT}:80"
+    #     networks:
+    #         - ${BACKEND_NETWORK}
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 0
+
+    # ### RABBITMQ ###
+    # rabbitmq:
+    #     image: ${SWARM_REGISTERY}:rabbitmq
+    #     build:
+    #         context: ./rabbitmq
+    #         args:
+    #             - RABBITMQ_VERSION=${RABBITMQ_VERSION}
+    #     environment:
+    #         - RABBITMQ_ROOT_PASS=${RABBITMQ_ROOT_PASS}
+    #         - RABBITMQ_ROOT_USER=${RABBITMQ_ROOT_USER}
+    #     volumes:
+    #         - ${DATA_PATH}/rabbitmq:/var/lib/rabbitmq
+    #     ports:
+    #         - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+    #     networks:
+    #         - ${BACKEND_NETWORK}
+    #     restart: unless-stopped
+    #     deploy:
+    #         mode: global
+
+    # ### GOACCESS ###
+    # goaccess:
+    #     image: ${SWARM_REGISTERY}:goaccess
+    #     build:
+    #         context: ./goaccess
+    #         args:
+    #             - GOACCESS_VERSION=${GOACCESS_VERSION}
+    #     volumes:
+    #         - ${LOGS_PATH}/apache2:/srv/logs/apache2
+    #         - ${DATA_PATH}/goaccess:/srv/output
+    #     ports:
+    #         - "${GOACCESS_WEB_PORT}:80"
+    #         - "${GOACCESS_WEB_SOCKET_PORT}:7890"
+    #     restart: unless-stopped
+    #     networks:
+    #         - ${BACKEND_NETWORK}
+    #     deploy:
+    #         mode: replicated
+    #         replicas: 0
+
+    # ### PROMETHEUS ###
+    # prometheus:
+    #     image: ${SWARM_REGISTERY}:prometheus
+    #     build:
+    #         context: ./prometheus
+    #     volumes:
+    #         - ${DATA_PATH}/prometheus:/var/lib/prometheus
+    #         - ${LOGS_PATH}/prometheus:/var/log/prometheus
+    #     ports:
+    #         - "${PROMETHEUS_WEB_PORT}:9090"
+    #     restart: unless-stopped
+    #     networks:
+    #         - ${BACKEND_NETWORK}
+    #     deploy:
+    #         mode: global
+    #         labels:
+    #             - "traefik.enable=true"
+    #             - "traefik.http.routers.prometheus.rule=PathPrefix(`/prometheus`)"
+    #             - "traefik.http.routers.prometheus.entrypoints=web"
+    #             - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
+    #             - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+    #     labels:
+    #         - "traefik.enable=true"
+    #         - "traefik.http.routers.prometheus.rule=PathPrefix(`/prometheus`)"
+    #         - "traefik.http.routers.prometheus.entrypoints=web"
+    #         - "traefik.http.services.prometheus.loadbalancer.server.port=9090"

@@ -1,0 +1,41 @@
+api:
+    dashboard: true
+    insecure: true
+
+entryPoints:
+    web:
+        address: ":80"
+    websecure:
+        address: ":443"
+
+providers:
+    docker:
+        exposedByDefault: false
+        swarmMode: false
+        watch: true
+    file:
+        directory: /file-providers
+        watch: true
+
+log:
+    filePath: "/var/log/traefik/traefik.log"
+
+accessLog:
+    filePath: "/var/log/traefik/access.log"
+    bufferingSize: 100
+
+metrics:
+  influxDB:
+    address: influxdb:9999
+    database: "traefik"
+    username: "admin"
+    password: "1123581321"
+
+certificatesResolvers:
+    letsencrypt:
+        acme:
+            email: admin@larapress.io
+            caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+            storage: acme.json
+            httpChallenge:
+                entryPoint: web
