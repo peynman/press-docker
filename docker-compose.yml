@@ -12,26 +12,6 @@ networks:
         external:
             name: frontend
 
-volumes:
-    volApp:
-      driver: glusterfs
-      name: "gfs/app"
-    volMariaDB:
-      driver: glusterfs
-      name: "gfs/mariadb"
-    volMedia:
-      driver: glusterfs
-      name: "gfs/media"
-    volRedis:
-      driver: glusterfs
-      name: "gfs/redis"
-    volInfluxDB:
-      driver: glusterfs
-      name: "gfs/influxdb"
-    volTraefik:
-      driver: glusterfs
-      name: "gfs/traefik"
-
 services:
     ### PHP-FPM ######
     php-fpm:
@@ -55,9 +35,9 @@ services:
                 - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
                 - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
         volumes:
-#            - ${LOGS_PATH}/php-fpm:/var/log/php-fpm
-            - volMedia:/var/media
-            - volApp:/var/www
+            - ${LOGS_PATH}/php-fpm:/var/log/php-fpm
+            - ${MEDIA_PATH}:/var/media
+            - ${APACHE2_APP_PATH}:/var/www
         networks:
             - ${BACKEND_NETWORK}
         restart: unless-stopped
@@ -83,8 +63,8 @@ services:
             - MARIADB_DB1_USER=${MARIADB_DB1_USER}
             - MARIADB_DB1_PASS=${MARIADB_DB1_PASS}
         volumes:
-            - volMariaDB/logs:/var/log/mysql
-            - volMariaDB/data:/var/lib/mysql
+            - ${LOGS_PATH}/mariadb:/var/log/mysql
+            - ${DATA_PATH}/mariadb:/var/lib/mysql
         networks:
             - ${BACKEND_NETWORK}
         restart: unless-stopped
@@ -108,8 +88,8 @@ services:
         sysctls:
             net.core.somaxconn: 1024
         volumes:
-            - volRedis/data:/data
-            - volRedis/logs:/var/log/redis
+            - ${DATA_PATH}/redis:/data
+            - ${LOGS_PATH}/redis:/var/log/redis
         networks:
             - ${BACKEND_NETWORK}
         restart: unless-stopped
@@ -130,8 +110,8 @@ services:
           INFLUXDB_USER: ${INFLUXDB_USER}
           INFLUXDB_USER_PASSWORD: ${INFLUXDB_PASS}
       volumes:
-          - volInfluxDB/data:/root/.influxdbv2
-          - volInfluxDB/logs:/var/log/influxdbv2
+          - ${DATA_PATH}/influxdb:/root/.influxdbv2
+          - ${LOGS_PATH}/influxdb:/var/log/influxdbv2
       ports:
           - "${INFLUXDB_WEB_PORT}:9999"
       restart: unless-stopped
@@ -154,8 +134,8 @@ services:
           - APACHE_RUNTIME_MODE=${APP_RUNTIME_MODE}
       volumes:
           - ${LOGS_PATH}/apache2:/var/log/apache2
-          - volMedia:/var/media
-          - volApp:/var/www
+          - ${MEDIA_PATH}:/var/media
+          - ${APACHE2_APP_PATH}:/var/www
       networks:
           - ${BACKEND_NETWORK}
           - ${FRONTEND_NETWORK}
@@ -197,6 +177,8 @@ services:
             - ECHO_REDIS_PASS=${ECHO_REDIS_PASS}
             - ECHO_REDIS_DB=${ECHO_REDIS_DB}
             - ECHO_RUNTIME_MODE=${APP_RUNTIME_MODE}
+      ports:
+        - "${ECHO_PORT}:${ECHO_PORT}"
       networks:
         - ${BACKEND_NETWORK}
         - ${FRONTEND_NETWORK}
@@ -226,10 +208,10 @@ services:
             args:
                 - TRAEFIK_VERSION=${TRAEFIK_VERSION}
         volumes:
-            - volTraefik/logs:/var/log/traefik
-            - volTraefik/letsencrypt:/letsencrypt
+            - ${LOGS_PATH}/traefik:/var/log/traefik
+            - ${DATA_PATH}/traefik/letsencrypt:/letsencrypt
             - /var/run/docker.sock:/var/run/docker.sock
-#            - ./traefik/configs:/file-providers
+            - ./traefik/configs:/file-providers
         networks:
             - ${FRONTEND_NETWORK}
             - ${BACKEND_NETWORK}
