@@ -1,3 +1,3 @@
 FROM gitlab/gitlab-runner:latest
 
-RUN apt-get update -y && apt-get install rsync -y
+RUN apt-get update -y && apt-get install rsync openssh-client -y

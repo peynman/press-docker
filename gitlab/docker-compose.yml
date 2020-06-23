@@ -1,12 +1,26 @@
-version: 3
+version: "3"
 
 networks:
   gitlab-network:
     driver: bridge
 
 services:
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/registry.password
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+    volumes:
+      - ./data:/data
+      - ./auth:/auth
+    restart: always
+
   gitlab-web:
-    image: 'gitlab/gitlab-ce:latest'
+    image: "gitlab/gitlab-ce:latest"
     restart: always
     environment:
       GITLAB_OMNIBUS_CONFIG: |
@@ -14,19 +28,18 @@ services:
         # Add any other gitlab.rb configuration here, each on its own line
         letsencrypt['enable'] = false
     ports:
-      - '8080:80'
+      - "8080:80"
     volumes:
-      - './config:/etc/gitlab'
-      - './logs:/var/log/gitlab'
-      - './data:/var/opt/gitlab'
+      - "./config:/etc/gitlab"
+      - "./logs:/var/log/gitlab"
+      - "./data:/var/opt/gitlab"
     networks:
       - gitlab-network
 
   gitlab-runner:
     image: gitlab/gitlab-runner:latest
     volumes:
-      - './runner-config:/etc/gitlab-runner:Z'
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - "./runner-config:/etc/gitlab-runner:Z"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - gitlab-network
-
