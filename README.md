@@ -18,7 +18,7 @@ a ready to load docker environment to run laravel/php applications in a cluster
     1. ```mkdir -p .data/redis .data/mariadb .data/php-fpm .data/apache2 .data/traefik .data/traefik/letsencrypt .data/influxdb```
     2. ```mkdir -p .media .logs/redis .logs/mariadb .logs/php-fpm .logs/apache2 .logs/traefik .logs/influxdb```
 5. run swarm stack
-    1. ```docker stack deploy --with-registry-auth -c <(docker-compose config) press```
+    1. ```docker stack deploy --with-registry-auth -c <(docker-compose config) app```
 
 ### Setup Xdebug VSCode
 1. add XDEBUG_SESSION to EncryptCookies middleware in laravel App\Http\Middleware\EncryptCookies

@@ -1,0 +1,9 @@
+http:
+  routers:
+    apache2:
+      tls:
+        certResolver: letsencrypt
+        domains:
+          - main: "onlineacademy.ir"
+            sans:
+              - "*.onlineacademy.ir"
