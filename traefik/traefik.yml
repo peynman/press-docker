@@ -11,7 +11,7 @@ entryPoints:
 providers:
     docker:
         exposedByDefault: false
-        swarmMode: false
+        swarmMode: true
         watch: true
     file:
         directory: /file-providers
@@ -34,8 +34,8 @@ metrics:
 certificatesResolvers:
     letsencrypt:
         acme:
-            email: admin@larapress.io
-            caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+            email: admin@onlineacademy.ir
             storage: acme.json
+            entryPoint: websecure
             httpChallenge:
                 entryPoint: web

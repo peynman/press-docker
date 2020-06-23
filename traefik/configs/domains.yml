@@ -1,9 +1,31 @@
+certificatesResolvers:
+  letsencrypt:
+      acme:
+        onDemand: true
+        entryPoint: websecure
+        email: admin@onlineacademy.ir
+        storage: acme.json
+        httpChallenge:
+            entryPoint: web
+
+acme:
+  domains:
+    - main: "my.onlineacademy.ir"
+
 http:
   routers:
     apache2:
+      rule: PathPrefix(`/`)
+      service: apache2@docekr
+      entryPoints:
+        - web
+        - websecure
       tls:
         certResolver: letsencrypt
         domains:
-          - main: "onlineacademy.ir"
-            sans:
-              - "*.onlineacademy.ir"
+          - main: "my.onlineacademy.ir"
+#            sans:
+#              - "*.onlineacademy.ir"
+      loadbalancer:
+        server:
+          port: 80
