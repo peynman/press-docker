@@ -48,6 +48,66 @@ services:
               constraints:
                   - node.labels.region == ir
 
+    ### laravel-horizon ######
+    laravel-horizon:
+      image: ${SWARM_REGISTERY}/laravel-horizon:latest
+      build:
+          context: ./laravel-horizon
+          args:
+              - PHP_VERSION=${PHP_VERSION}
+              - PHP_TIMEZONE=${PHP_TIMEZONE}
+              - PHP_BASH=${PHP_BASH}
+              - PHP_FPM_RUNTIME_MODE=${APP_RUNTIME_MODE}
+              - PHP_INSTALL_REDIS=${PHP_INSTALL_REDIS}
+              - PHP_INSTALL_XDEBUG=${PHP_INSTALL_XDEBUG}
+              - PHP_INSTALL_GD=${PHP_INSTALL_GD}
+              - PHP_INSTALL_MYSQL=${PHP_INSTALL_MYSQL}
+              - PHP_INSTALL_INTL=${PHP_INSTALL_INTL}
+              - PHP_INSTALL_AMQLIB=${PHP_INSTALL_AMQLIB}
+              - PHP_INSTALL_PCNTL=${PHP_INSTALL_PCNTL}
+              - PHP_INSTALL_COMPOSER=${PHP_INSTALL_COMPOSER}
+              - PHP_INSTALL_BCMATH=${PHP_INSTALL_BCMATH}
+              - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
+              - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
+      volumes:
+          - ${MEDIA_PATH}:/var/media
+          - ${APACHE2_APP_PATH}:/var/www
+      networks:
+        - ${BACKEND_NETWORK}
+      deploy:
+        mode: replicated
+        replicas: 1
+        placement:
+          constraints:
+              - node.labels.region == ir
+
+    ### laravel-scheduler ######
+    laravel-scheduler:
+      image: ${SWARM_REGISTERY}/laravel-scheduler:latest
+      build:
+          context: ./laravel-scheduler
+          args:
+              - PHP_VERSION=${PHP_VERSION}
+              - PHP_TIMEZONE=${PHP_TIMEZONE}
+              - PHP_BASH=${PHP_BASH}
+              - PHP_FPM_RUNTIME_MODE=${APP_RUNTIME_MODE}
+              - PHP_INSTALL_REDIS=${PHP_INSTALL_REDIS}
+              - PHP_INSTALL_XDEBUG=${PHP_INSTALL_XDEBUG}
+              - PHP_INSTALL_GD=${PHP_INSTALL_GD}
+              - PHP_INSTALL_MYSQL=${PHP_INSTALL_MYSQL}
+              - PHP_INSTALL_INTL=${PHP_INSTALL_INTL}
+              - PHP_INSTALL_AMQLIB=${PHP_INSTALL_AMQLIB}
+              - PHP_INSTALL_PCNTL=${PHP_INSTALL_PCNTL}
+              - PHP_INSTALL_COMPOSER=${PHP_INSTALL_COMPOSER}
+              - PHP_INSTALL_BCMATH=${PHP_INSTALL_BCMATH}
+              - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
+              - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
+      volumes:
+          - ${MEDIA_PATH}:/var/media
+          - ${APACHE2_APP_PATH}:/var/www
+      networks:
+        - ${BACKEND_NETWORK}
+
     ### DATABASE ####
     mariadb:
         image: ${SWARM_REGISTERY}/mariadb:latest

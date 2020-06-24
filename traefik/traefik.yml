@@ -11,30 +11,25 @@ entryPoints:
 providers:
     docker:
         exposedByDefault: false
-        swarmMode: true
+        swarmMode: false
         watch: true
     file:
         directory: /file-providers
         watch: true
 
 log:
-    filePath: "/var/log/traefik/traefik.log"
+  level: debug
+  filePath: "/var/log/traefik/traefik.log"
 
 accessLog:
     filePath: "/var/log/traefik/access.log"
     bufferingSize: 100
 
-metrics:
-  influxDB:
-    address: influxdb:9999
-    database: "traefik"
-    username: "admin"
-    password: "1123581321"
-
 certificatesResolvers:
     letsencrypt:
         acme:
-            email: admin@onlineacademy.ir
-            storage: acme.json
-            httpChallenge:
-                entryPoint: web
+          caServer: https://acme-v02.api.letsencrypt.org/directory
+          email: admin@onlineacademy.ir
+          storage: /letsencrypt/acme.json
+          httpChallenge:
+              entryPoint: web

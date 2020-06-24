@@ -1,6 +1,6 @@
 ARG PHP_VERISON=7.4
 
-FROM php:${PHP_VERISON}-fpm-alpine
+FROM php:${PHP_VERISON}-alpine
 
 RUN apk update
 RUN apk add --no-cache $PHPIZE_DEPS
@@ -86,6 +86,7 @@ ENV TIMEZONE=${PHP_TIMEZONE}
 
 ARG PHP_FPM_RUNTIME_MODE=debug
 COPY php-init-${PHP_FPM_RUNTIME_MODE}.ini /usr/local/etc/php/conf.d/50-setting.ini
-COPY php-fpm-${PHP_FPM_RUNTIME_MODE}.conf /usr/local/etc/php-fpm.d/app.conf
 
 WORKDIR /var/www/
+
+CMD ["php", "artisan", "horizon"]
