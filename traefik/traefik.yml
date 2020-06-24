@@ -36,6 +36,5 @@ certificatesResolvers:
         acme:
             email: admin@onlineacademy.ir
             storage: acme.json
-            entryPoint: websecure
             httpChallenge:
                 entryPoint: web
