@@ -248,8 +248,8 @@ services:
         - ${FRONTEND_NETWORK}
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.echo.rule=Host(`echo.onlineacademy.ir`)"
-        - "traefik.http.routers.echo.entrypoints=web,websecure"
+        - "traefik.http.routers.echo.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.echo.entrypoints=socketio"
         - "traefik.http.services.echo.loadbalancer.server.port=8088"
       deploy:
         mode: replicated
@@ -259,8 +259,8 @@ services:
               - node.labels.region == ir
         labels:
               - "traefik.enable=true"
-              - "traefik.http.routers.echo.rule=Host(`echo.onlineacademy.ir`)"
-              - "traefik.http.routers.echo.entrypoints=web,websecure"
+              - "traefik.http.routers.echo.rule=PathPrefix(`/`)"
+              - "traefik.http.routers.echo.entrypoints=socketio"
               - "traefik.http.routers.echo.tls.certresolver=letsencrypt"
               - "traefik.http.services.echo.loadbalancer.server.port=8088"
 
