@@ -1,14 +1,20 @@
 api:
-    dashboard: false
-    insecure: false
+    dashboard: #TRAEFIK_ENABLE_DASHBOARD_PLACEHOLDER
+    insecure: #TRAEFIK_DEBUG_MODE_PLACEHOLDER
+    debug: #TRAEFIK_DEBUG_MODE_PLACEHOLDER
+
+rest:
+  entryPoint: "traefik"
 
 entryPoints:
     web:
         address: ":80"
     websecure:
         address: ":443"
-    socketio:
-        address: ":8088"
+    traefik:
+        address: ":8086"
+    rtmp:
+        address: ":1935"
 
 providers:
     docker:
@@ -27,10 +33,21 @@ accessLog:
     filePath: "/var/log/traefik/access.log"
     bufferingSize: 100
 
+metrics:
+  influxDB:
+    protocol: http
+    address: "#TRAEFIK_INFLUXDB_URL_PLACEHOLDER"
+    database: "#TRAEFIK_INFLUXDB_DB_PLACEHOLDER"
+    username: "#TRAEFIK_INFLUXDB_USER_PLACEHOLDER"
+    password: "#TRAEFIK_INFLUXDB_PASS_PLACEHOLDER"
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    pushInterval: 10s
+
 certificatesResolvers:
     letsencrypt:
         acme:
-          caServer: https://acme-v02.api.letsencrypt.org/directory
+          caServer: #TRAEFIK_ACME_URL_PLACEHOLDER
           email: admin@onlineacademy.ir
           storage: /letsencrypt/acme.json
           httpChallenge:

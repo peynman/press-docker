@@ -1,15 +1,14 @@
-http:
-  routers:
-    apache2:
-      rule: PathPrefix(`/`)
-      service: apache2@docker
-      entryPoints:
-        - web
-        - websecure
-      tls:
-        certResolver: letsencrypt
-        domains:
-          - main: "my.onlineacademy.ir"
-      loadbalancer:
-        server:
-          port: 80
+# http:
+#   routers:
+#     apache2-sec:
+#       rule: PathPrefix(`/`)
+#       service: apache2@docker
+#       entryPoints:
+#         - websecure
+#       tls:
+#         certResolver: letsencrypt
+#         domains:
+#           - main: "my.onlineacademy.ir"
+#       loadbalancer:
+#         server:
+#           port: 80
