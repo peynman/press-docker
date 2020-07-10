@@ -25,6 +25,9 @@ a ready to load docker environment to run laravel/php applications in a cluster
 1. add XDEBUG_SESSION to EncryptCookies middleware in laravel App\Http\Middleware\EncryptCookies
     1. ```protected $except = [ 'XDEBUG_SESSION'];```
 
+### Generate Dev Certificate
+1. ```cd traefik/certs && openssl req -x509 -out localhost.crt -keyout localhost.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=*.host.local' -extensions EXT -config <(printf "[dn]\nCN=*.host.local\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:*.host.local\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")```
+
 ## Setup Laravel application
 1. ```php artisan vendor:publish```
 2. ```php artisan migrate```

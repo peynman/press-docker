@@ -4,5 +4,4 @@ COPY entrypoint.sh /usr/bin/entrypoint.sh
 
 EXPOSE 9999
 
-ENTRYPOINT [ "entrypoint.sh" ]
-CMD [ "influxd" ]
+CMD [ "influxd" , "--reporting-disabled"]

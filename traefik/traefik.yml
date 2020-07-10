@@ -11,10 +11,14 @@ entryPoints:
         address: ":80"
     websecure:
         address: ":443"
+    influxdb:
+        address: ":8087"
     traefik:
         address: ":8086"
     rtmp:
         address: ":1935"
+    socketio:
+        address: ":8088"
 
 providers:
     docker:
@@ -26,23 +30,23 @@ providers:
         watch: true
 
 log:
-  level: debug
+  level: #TRAEFIK_LOG_LEVEL_PLACEHOLDER
   filePath: "/var/log/traefik/traefik.log"
 
 accessLog:
     filePath: "/var/log/traefik/access.log"
     bufferingSize: 100
 
-metrics:
-  influxDB:
-    protocol: http
-    address: "#TRAEFIK_INFLUXDB_URL_PLACEHOLDER"
-    database: "#TRAEFIK_INFLUXDB_DB_PLACEHOLDER"
-    username: "#TRAEFIK_INFLUXDB_USER_PLACEHOLDER"
-    password: "#TRAEFIK_INFLUXDB_PASS_PLACEHOLDER"
-    addEntryPointsLabels: true
-    addServicesLabels: true
-    pushInterval: 10s
+# metrics:
+#  influxDB:
+#    protocol: http
+#    address: "#TRAEFIK_INFLUXDB_URL_PLACEHOLDER"
+#    database: "#TRAEFIK_INFLUXDB_DB_PLACEHOLDER"
+#    username: "#TRAEFIK_INFLUXDB_USER_PLACEHOLDER"
+#    password: "#TRAEFIK_INFLUXDB_PASS_PLACEHOLDER"
+#    addEntryPointsLabels: true
+#    addServicesLabels: true
+#    pushInterval: 10s
 
 certificatesResolvers:
     letsencrypt:
@@ -50,5 +54,6 @@ certificatesResolvers:
           caServer: #TRAEFIK_ACME_URL_PLACEHOLDER
           email: admin@onlineacademy.ir
           storage: /letsencrypt/acme.json
+
           httpChallenge:
               entryPoint: web

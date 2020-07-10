@@ -25,8 +25,8 @@
         }
     ],
     "apiOriginAllow": {
-        "allowCors": false,
-        "allowOrigin": "127.0.0.1",
+        "allowCors": true,
+        "allowOrigin": "0.0.0.0",
         "allowMethods": "GET, POST",
         "allowHeaders": "Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept, Authorization, X-CSRF-TOKEN, X-Socket-Id"
     }

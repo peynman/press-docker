@@ -48,4 +48,6 @@ RUN echo '${ECHO_REDIS_HOST} ${ECHO_REDIS_PASS} ${ECHO_REDIS_DB}'
 RUN laravel-echo-server init
 RUN laravel-echo-server client:add
 
+EXPOSE ${ECHO_PORT}
+ENV DEBUG=*
 CMD ["laravel-echo-server", "start"]

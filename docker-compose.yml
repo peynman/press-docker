@@ -64,7 +64,31 @@ services:
               constraints:
                   - node.labels.region == ir
 
-    ### INFLUXDB ###
+    ### TELEGRAF ###
+    telegraf:
+      image: ${SWARM_REGISTERY}/telegraf:latest
+      build:
+        context: ./telegraf
+        args:
+          - TELEGRAF_INFLUXDB_SCHEMA=${TELEGRAF_INFLUXDB_SCHEMA}
+          - TELEGRAF_INFLUXDB_HOST=${TELEGRAF_INFLUXDB_HOST}
+          - TELEGRAF_INFLUXDB_PORT=${TELEGRAF_INFLUXDB_PORT}
+          - TELEGRAF_INFLUXDB_ORG=${TELEGRAF_INFLUXDB_ORG}
+          - TELEGRAF_INFLUXDB_BUCKET=${TELEGRAF_INFLUXDB_BUCKET}
+          - TELEGRAF_INFLUXDB_TOKEN=${TELEGRAF_INFLUXDB_TOKEN}
+          - TELEGRAF_PHP_FPM_PORT=${TELEGRAF_PHP_FPM_PORT}
+      volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+      networks:
+          - ${BACKEND_NETWORK}
+      restart: unless-stopped
+      deploy:
+          mode: global
+          placement:
+            constraints:
+                - node.labels.region == ir
+
+      ### INFLUXDB ###
     influxdb:
       image: ${SWARM_REGISTERY}/influxdb:latest
       build:
@@ -80,11 +104,39 @@ services:
       restart: unless-stopped
       networks:
           - ${BACKEND_NETWORK}
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
+        ## http
+        - "traefik.http.routers.influxdb.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.influxdb.entrypoints=influxdb"
+        - "traefik.http.routers.influxdb.service=influxdb@docker"
+        - "traefik.http.services.influxdb.loadbalancer.server.port=9999"
+        ## https
+        - "traefik.http.routers.influxdb-sec.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.influxdb-sec.entrypoints=influxdb"
+        - "traefik.http.routers.influxdb-sec.tls=true"
+        - "traefik.http.routers.influxdb-sec.service=influxdb@docker"
       deploy:
           mode: global
           placement:
             constraints:
                 - node.labels.region == admin
+          labels:
+            - "traefik.enable=true"
+            - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
+            ## http
+            - "traefik.http.routers.influxdb.rule=PathPrefix(`/`)"
+            - "traefik.http.routers.influxdb.entrypoints=influxdb"
+            - "traefik.http.routers.influxdb.service=influxdb@docker"
+            - "traefik.http.services.influxdb.loadbalancer.server.port=9999"
+            - "traefik.http.routers.influxdb.middlewares=influxdb-stripprefixes"
+            ## https
+            - "traefik.http.routers.influxdb-sec.rule=PathPrefix(`/`)"
+            - "traefik.http.routers.influxdb-sec.entrypoints=influxdb"
+            - "traefik.http.routers.influxdb-sec.tls=true"
+            - "traefik.http.routers.influxdb-sec.service=influxdb@docker"
+            - "traefik.http.routers.influxdb-sec.middlewares=streaming-stripprefixes"
 
     ### TRAEFIK ###
     traefik:
@@ -100,6 +152,9 @@ services:
               - TRAEFIK_INFLUXDB_PASS=${TRAEFIK_INFLUXDB_PASS}
               - TRAEFIK_ACME_URL=${TRAEFIK_ACME_URL}
               - TRAEFIK_DEBUG_MODE=${TRAEFIK_DEBUG_MODE}
+              - TRAEFIK_LOG_LEVEL=${TRAEFIK_LOG_LEVEL}
+              - TRAEFIK_DEV_CERT_FILE=${TRAEFIK_DEV_CERT_FILE}
+              - TRAEFIK_DEV_CERT_KEY=${TRAEFIK_DEV_CERT_KEY}
       environment:
         - TRAEFIK_MARIADB_DOMAINS_DB=${MARIADB_DB1_NAME}
         - TRAEFIK_MARIADB_DOMAINS_USER=${MARIADB_DB1_USER}
@@ -109,6 +164,7 @@ services:
           - ${DATA_PATH}/traefik/letsencrypt:/letsencrypt
           - /var/run/docker.sock:/var/run/docker.sock
           - ./traefik/configs:/file-providers
+          - ./traefik/certs:/certs
       networks:
           - ${FRONTEND_NETWORK}
           - ${BACKEND_NETWORK}
@@ -119,12 +175,17 @@ services:
           - target: 443
             published: ${TRAEFIK_WEB_SECURED_PORT}
             mode: host
+          - target: 8087
+            published: 8087
           - target: 8086
             published: ${TRAEFIK_DASHBOARD_PORT}
             mode: host
           - target: 1935
             published: 1935
             protocol: tcp
+            mode: host
+          - target: ${ECHO_PORT}
+            published: ${ECHO_PORT}
             mode: host
       deploy:
           mode: global
@@ -218,9 +279,17 @@ services:
       restart: unless-stopped
       labels:
         - "traefik.enable=true"
+        # http for dev
         - "traefik.http.routers.apache2.rule=PathPrefix(`/`)"
         - "traefik.http.routers.apache2.entrypoints=web"
+        - "traefik.http.routers.apache2.service=apache2@docker"
         - "traefik.http.services.apache2.loadbalancer.server.port=80"
+        # https for dev
+        - "traefik.http.routers.apache2-sec.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.apache2-sec.tls=true"
+        - "traefik.http.routers.apache2-sec.service=apache2@docker"
+        - "traefik.http.routers.apache2-sec.entrypoints=websecure"
+        - "traefik.http.services.apache2-sec.loadbalancer.server.port=80"
       deploy:
           mode: replicated
           replicas: 1
@@ -263,12 +332,21 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.middlewares.echo-stripprefixes.stripprefix.prefixes=/echo"
-        # http echo
-        - "traefik.http.routers.echo.rule=PathPrefix(`/echo`)"
-        - "traefik.http.routers.echo.entrypoints=web"
+        # tls echo
+        - "traefik.http.routers.echo.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.echo.entrypoints=socketio"
         - "traefik.http.routers.echo.service=echo@docker"
-        - "traefik.http.routers.echo.middlewares=echo-stripprefixes"
+        - "traefik.http.routers.echo.tls=true"
         - "traefik.http.services.echo.loadbalancer.server.port=8088"
+        # no tls echo
+        - "traefik.http.routers.echo-nt.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.echo-nt.entrypoints=socketio"
+        - "traefik.http.routers.echo-nt.service=echo@docker"
+        # http echo
+        - "traefik.http.routers.echo-web.rule=PathPrefix(`/echo`)"
+        - "traefik.http.routers.echo-web.entrypoints=web"
+        - "traefik.http.routers.echo-web.middlewares=echo-stripprefixes"
+        - "traefik.http.routers.echo-web.service=echo@docker"
         # https echo
         - "traefik.http.routers.echo-sec.rule=PathPrefix(`/echo`)"
         - "traefik.http.routers.echo-sec.entrypoints=websecure"
@@ -284,12 +362,21 @@ services:
         labels:
           - "traefik.enable=true"
           - "traefik.http.middlewares.echo-stripprefixes.stripprefix.prefixes=/echo"
-          # http echo
-          - "traefik.http.routers.echo.rule=PathPrefix(`/echo`)"
-          - "traefik.http.routers.echo.entrypoints=web"
+          # tls echo
+          - "traefik.http.routers.echo.rule=PathPrefix(`/`)"
+          - "traefik.http.routers.echo.entrypoints=socketio"
           - "traefik.http.routers.echo.service=echo@docker"
-          - "traefik.http.routers.echo.middlewares=echo-stripprefixes"
+          - "traefik.http.routers.echo.tls=true"
           - "traefik.http.services.echo.loadbalancer.server.port=8088"
+          # no tls echo
+          - "traefik.http.routers.echo-nt.rule=PathPrefix(`/`)"
+          - "traefik.http.routers.echo-nt.entrypoints=socketio"
+          - "traefik.http.routers.echo-nt.service=echo@docker"
+          # http echo
+          - "traefik.http.routers.echo-web.rule=PathPrefix(`/echo`)"
+          - "traefik.http.routers.echo-web.entrypoints=web"
+          - "traefik.http.routers.echo-web.middlewares=echo-stripprefixes"
+          - "traefik.http.routers.echo-web.service=echo@docker"
           # https echo
           - "traefik.http.routers.echo-sec.rule=PathPrefix(`/echo`)"
           - "traefik.http.routers.echo-sec.entrypoints=websecure"
