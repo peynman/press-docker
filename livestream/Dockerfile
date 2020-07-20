@@ -54,6 +54,75 @@ RUN cd /tmp/nginx-${NGINX_VERSION} && \
   --with-debug && \
   cd /tmp/nginx-${NGINX_VERSION} && make && make install
 
+###############################
+# Build the FFmpeg-build image.
+FROM alpine:3.8 as build-ffmpeg
+ARG FFMPEG_VERSION
+ARG PREFIX=/usr/local
+ARG MAKEFLAGS="-j4"
+
+# FFmpeg build dependencies.
+RUN apk add --update \
+  build-base \
+  coreutils \
+  freetype-dev \
+  lame-dev \
+  libogg-dev \
+  libass \
+  libass-dev \
+  libvpx-dev \
+  libvorbis-dev \
+  libwebp-dev \
+  libtheora-dev \
+  opus-dev \
+  pkgconf \
+  pkgconfig \
+  rtmpdump-dev \
+  wget \
+  x264-dev \
+  x265-dev \
+  yasm
+
+RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories
+RUN apk add --update fdk-aac-dev
+
+# Get FFmpeg source.
+RUN cd /tmp/ && \
+  wget http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz && \
+  tar zxf ffmpeg-${FFMPEG_VERSION}.tar.gz && rm ffmpeg-${FFMPEG_VERSION}.tar.gz
+
+# Compile ffmpeg.
+RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
+  ./configure \
+  --prefix=${PREFIX} \
+  --enable-version3 \
+  --enable-gpl \
+  --enable-nonfree \
+  --enable-small \
+  --enable-libmp3lame \
+  --enable-libx264 \
+  --enable-libx265 \
+  --enable-libvpx \
+  --enable-libtheora \
+  --enable-libvorbis \
+  --enable-libopus \
+  --enable-libfdk-aac \
+  --enable-libass \
+  --enable-libwebp \
+  --enable-librtmp \
+  --enable-postproc \
+  --enable-avresample \
+  --enable-libfreetype \
+  --enable-openssl \
+  --disable-debug \
+  --disable-doc \
+  --disable-ffplay \
+  --extra-libs="-lpthread -lm" && \
+  make && make install && make distclean
+
+# Cleanup.
+RUN rm -rf /var/cache/* /tmp/*
+
 ##########################
 # Build the release image.
 FROM alpine:3.8
@@ -87,8 +156,6 @@ RUN sed -i "s~#LIVESTREAM_AUTH_HOST_PLACEHOLDER~$LIVESTREAM_AUTH_HOST~g" /opt/ng
 
 RUN mkdir -p /opt/data && mkdir /www
 ADD static /www/static
-
-COPY .htpasswd /opt/nginx/.htpasswd
 
 EXPOSE 1935
 EXPOSE 80
