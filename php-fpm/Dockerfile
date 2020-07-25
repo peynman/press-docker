@@ -81,6 +81,8 @@ RUN if [ ${PHP_INSTALL_SOAP} = true ]; then \
     docker-php-ext-install xml soap \
 ;fi
 
+RUN apk add --no-cache git
+
 ARG PHP_TIMEZONE=UTC
 ENV TIMEZONE=${PHP_TIMEZONE}
 
