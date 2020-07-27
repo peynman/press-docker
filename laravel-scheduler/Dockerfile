@@ -3,9 +3,6 @@ ARG PHP_VERISON=7.4
 # Build the release image.
 FROM php:${PHP_VERISON}-alpine
 
-COPY --from=build-ffmpeg /usr/local /usr/local
-COPY --from=build-ffmpeg /usr/lib/libfdk-aac.so.2 /usr/lib/libfdk-aac.so.2
-
 RUN apk update
 RUN apk add --no-cache $PHPIZE_DEPS
 
