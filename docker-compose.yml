@@ -104,6 +104,10 @@ services:
       restart: unless-stopped
       networks:
           - ${BACKEND_NETWORK}
+      ports:
+          - target: 9999
+            published: 8087
+            mode: host
       labels:
         - "traefik.enable=true"
         - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
@@ -175,8 +179,6 @@ services:
           - target: 443
             published: ${TRAEFIK_WEB_SECURED_PORT}
             mode: host
-          - target: 8087
-            published: 8087
           - target: 8086
             published: ${TRAEFIK_DASHBOARD_PORT}
             mode: host
@@ -195,6 +197,7 @@ services:
 
     ### LIVESTREAM ###
     livestream:
+      image: ${SWARM_REGISTERY}/livestream:latest
       build:
           context: ./livestream
           args:
@@ -206,8 +209,8 @@ services:
       networks:
           - ${BACKEND_NETWORK}
           - ${FRONTEND_NETWORK}
-      restart: unless-stopped
-      labels:
+          restart: unless-stopped
+          labels:
           - "traefik.enable=true"
           - "traefik.http.middlewares.streaming-stripprefixes.stripprefix.prefixes=/upstream,/livestream"
           - traefik.http.middlewares.test-auth.basicauth.users=
@@ -479,6 +482,12 @@ services:
           - ${APACHE2_APP_PATH}:/var/www
       networks:
         - ${BACKEND_NETWORK}
+      deploy:
+        mode: replicated
+        replicas: 1
+        placement:
+          constraints:
+              - node.labels.region == ir
 
     ### PHPMYADMIN ###
     phpmyadmin:
