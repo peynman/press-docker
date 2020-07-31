@@ -209,8 +209,8 @@ services:
       networks:
           - ${BACKEND_NETWORK}
           - ${FRONTEND_NETWORK}
-          restart: unless-stopped
-          labels:
+      restart: unless-stopped
+      labels:
           - "traefik.enable=true"
           - "traefik.http.middlewares.streaming-stripprefixes.stripprefix.prefixes=/upstream,/livestream"
           - traefik.http.middlewares.test-auth.basicauth.users=
