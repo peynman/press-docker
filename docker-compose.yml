@@ -282,11 +282,13 @@ services:
       restart: unless-stopped
       labels:
         - "traefik.enable=true"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
         # http for dev
         - "traefik.http.routers.apache2.rule=PathPrefix(`/`)"
         - "traefik.http.routers.apache2.entrypoints=web"
         - "traefik.http.routers.apache2.service=apache2@docker"
         - "traefik.http.services.apache2.loadbalancer.server.port=80"
+        - "traefik.http.routers.apache2.middlewares=redirect-to-https"
         # https for dev
         - "traefik.http.routers.apache2-sec.rule=PathPrefix(`/`)"
         - "traefik.http.routers.apache2-sec.tls=true"
@@ -300,10 +302,12 @@ services:
             constraints:
                 - node.labels.region == ir
           labels:
+            - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
             - "traefik.enable=true"
             - "traefik.http.routers.apache2.rule=PathPrefix(`/`)"
             - "traefik.http.routers.apache2.entrypoints=web"
             - "traefik.http.services.apache2.loadbalancer.server.port=80"
+            - "traefik.http.routers.apache2.middlewares=redirect-to-https"
               ## web secutre for apache instance comes from bash script in traefik container
                 ## it generates a file that traefik is watching from mariadb "domains and sub_domains" table
 
@@ -445,6 +449,7 @@ services:
               - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
               - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
       volumes:
+          - ${LOGS_PATH}/horizon:/var/log/php
           - ${MEDIA_PATH}:/var/media
           - ${APACHE2_APP_PATH}:/var/www
       networks:
