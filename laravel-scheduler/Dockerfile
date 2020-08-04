@@ -158,5 +158,6 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
 # Cleanup.
 RUN rm -rf /var/cache/* /tmp/*
 
+USER www-data
 
 CMD ["crond", "-f"]

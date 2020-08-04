@@ -86,6 +86,7 @@ RUN apk add --no-cache git
 ARG PHP_TIMEZONE=UTC
 ENV TIMEZONE=${PHP_TIMEZONE}
 
+## copy config files
 ARG PHP_FPM_RUNTIME_MODE=debug
 COPY php-init-${PHP_FPM_RUNTIME_MODE}.ini /usr/local/etc/php/conf.d/50-setting.ini
 COPY php-fpm-${PHP_FPM_RUNTIME_MODE}.conf /usr/local/etc/php-fpm.d/www.conf

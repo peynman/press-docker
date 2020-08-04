@@ -157,4 +157,6 @@ RUN rm -rf /var/cache/* /tmp/*
 
 WORKDIR /var/www/
 
+USER www-data
+
 CMD ["php", "artisan", "horizon"]
