@@ -213,7 +213,6 @@ services:
       labels:
           - "traefik.enable=true"
           - "traefik.http.middlewares.streaming-stripprefixes.stripprefix.prefixes=/upstream,/livestream"
-          - traefik.http.middlewares.test-auth.basicauth.users=
           ## rtmp upstream
           - "traefik.tcp.routers.livestream.rule=HostSNI(`*`)"
           - "traefik.tcp.routers.livestream.entrypoints=rtmp"
@@ -297,7 +296,7 @@ services:
         - "traefik.http.services.apache2-sec.loadbalancer.server.port=80"
       deploy:
           mode: replicated
-          replicas: 1
+          replicas: 5
           placement:
             constraints:
                 - node.labels.region == ir
@@ -421,7 +420,7 @@ services:
       restart: unless-stopped
       deploy:
           mode: replicated
-          replicas: 1
+          replicas: 5
           placement:
             constraints:
                 - node.labels.region == ir
