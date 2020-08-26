@@ -360,8 +360,7 @@ services:
         - "traefik.http.routers.echo-sec.middlewares=echo-stripprefixes"
         - "traefik.http.routers.echo-sec.service=echo@docker"
       deploy:
-        mode: replicated
-        replicas: 1
+        mode: global
         placement:
           constraints:
               - node.labels.region == ir
@@ -447,14 +446,13 @@ services:
               - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
               - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
       volumes:
-          - ${LOGS_PATH}/horizon:/var/log/php
+          - ${LOGS_PATH}/horizon:/var/log
           - ${MEDIA_PATH}:/var/media
           - ${APACHE2_APP_PATH}:/var/www
       networks:
         - ${BACKEND_NETWORK}
       deploy:
-        mode: replicated
-        replicas: 1
+        mode: global
         placement:
           constraints:
               - node.labels.region == ir

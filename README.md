@@ -31,3 +31,7 @@ a ready to load docker environment to run laravel/php applications in a cluster
 ## Setup Laravel application
 1. ```php artisan vendor:publish```
 2. ```php artisan migrate```
+
+
+## Mardiadb backup
+1. ```docker exec  $(docker ps -lqf 'name=mariadb') mysqldump -uroot -proot app | zip  /srv/larapress-online-academy/docker/.data/backups/$(date "+%b_%d_%Y_%H_%M_%S").zip -```

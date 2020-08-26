@@ -88,11 +88,6 @@ ENV TIMEZONE=${PHP_TIMEZONE}
 ARG PHP_FPM_RUNTIME_MODE=debug
 COPY php-init-${PHP_FPM_RUNTIME_MODE}.ini /usr/local/etc/php/conf.d/50-setting.ini
 
-WORKDIR /var/www/
-
-ADD crontab.txt /crontab.txt
-RUN /usr/bin/crontab /crontab.txt
-
 ARG FFMPEG_VERSION=4.1.3
 ARG PREFIX=/usr/local
 ARG MAKEFLAGS="-j4"
@@ -158,6 +153,10 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
 # Cleanup.
 RUN rm -rf /var/cache/* /tmp/*
 
+COPY run.sh /usr/bin/run.sh
+RUN chmod +x /usr/bin/run.sh
+RUN chown www-data:www-data /usr/bin/run.sh
+
 USER www-data
 
-CMD ["crond", "-f"]
+ENTRYPOINT run.sh

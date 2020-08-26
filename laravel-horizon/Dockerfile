@@ -152,11 +152,14 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
   --extra-libs="-lpthread -lm" && \
   make && make install && make distclean
 
+
+## supervisord
+RUN apk add --update supervisor && rm  -rf /tmp/* /var/cache/apk/*
+COPY supervisord.conf /etc/supervisord.conf
+
 # Cleanup.
 RUN rm -rf /var/cache/* /tmp/*
 
-WORKDIR /var/www/
+USER root
 
-USER www-data
-
-CMD ["php", "artisan", "horizon"]
+ENTRYPOINT ["/usr/bin/supervisord", "-n", "-c",  "/etc/supervisord.conf"]

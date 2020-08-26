@@ -5,10 +5,15 @@ networks:
     driver: bridge
 
 services:
+  # nginx server as proxy for all services
+  nginx:
+    image:
+
+  # docker private registery for swarm
   registry:
     image: registry:2
     ports:
-      - "5000:5000"
+      - "${DOCKER_REGISTERY_PORT}:5000"
     environment:
       REGISTRY_AUTH: htpasswd
       REGISTRY_AUTH_HTPASSWD_REALM: Registry
@@ -19,6 +24,7 @@ services:
       - ./auth:/auth
     restart: always
 
+  # gitlab web app
   gitlab-web:
     image: "gitlab/gitlab-ce:latest"
     restart: always
@@ -28,18 +34,22 @@ services:
         # Add any other gitlab.rb configuration here, each on its own line
         letsencrypt['enable'] = false
     ports:
-      - "8080:80"
+      - '${GITLAB_SSH_PORT}:22'
     volumes:
-      - "./config:/etc/gitlab"
-      - "./logs:/var/log/gitlab"
-      - "./data:/var/opt/gitlab"
+      - "./.data/gitlab/config:/etc/gitlab"
+      - "./.data/gitlab/data:/var/opt/gitlab"
+      - "./.logas/gitlab:/var/log/gitlab"
     networks:
       - gitlab-network
 
+  # gitlab runner and cli
   gitlab-runner:
-    image: gitlab/gitlab-runner:latest
+    build:
+      dockerfile: ./runner/Dockerfile
     volumes:
-      - "./runner-config:/etc/gitlab-runner:Z"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - './.data/runner/data:/etc/gitlab-runner:Z'
+      - './.data/runner/cache:/cache'
+      - '${APP_PATH}:/app'
+      - '/var/run/docker.sock:/var/run/docker.sock'
     networks:
       - gitlab-network
