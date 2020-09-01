@@ -2,6 +2,7 @@ FROM httpd:2.4-alpine
 
 RUN sed -i '/LoadModule rewrite_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
 RUN sed -i '/LoadModule proxy_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
+RUN sed -i '/LoadModule deflate_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
 RUN sed -i '/LoadModule proxy_fcgi_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
 RUN sed -i '/LoadModule headers/s/^#//g' /usr/local/apache2/conf/httpd.conf
 RUN sed -i '/LoadModule actions/s/^#//g' /usr/local/apache2/conf/httpd.conf
