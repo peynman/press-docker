@@ -50,4 +50,4 @@ RUN laravel-echo-server client:add
 
 EXPOSE ${ECHO_PORT}
 ENV DEBUG=*
-CMD ["laravel-echo-server", "start"]
+CMD ["laravel-echo-server", "start", "--force"]
