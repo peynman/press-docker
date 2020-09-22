@@ -1,6 +1,6 @@
-ARG REDIS_VERSION=5
+ARG REDIS_VERSION=6.0.8
 
-FROM redis:${REDIS_VERSION}-alpine
+FROM redis:${REDIS_VERSION}
 
 ARG REDIS_RUNTIME_MODE=debug
 COPY redis-${REDIS_RUNTIME_MODE}.conf /var/redis/redis.conf
@@ -13,7 +13,6 @@ RUN sed -i "s~#PASSWORD_PLACEHOLDER~ requirepass ${REDIS_PASSWORD}~g" /var/redis
 RUN sed -i "s~#BIND_PLACEHOLDER~bind ${REDIS_BIND}~g" /var/redis/redis.conf
 RUN sed -i "s~#LOGFILE_PLACEHOLDER~ logfile \"${REDIS_LOGFILE}\"~g" /var/redis/redis.conf
 
-RUN cat /var/redis/redis.conf | grep 'logfile'
 
 EXPOSE 6379
 

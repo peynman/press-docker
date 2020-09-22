@@ -1,4 +1,4 @@
-ARG TRAEFIK_VERSION=2.2.1
+ARG TRAEFIK_VERSION=2.3
 FROM traefik:${TRAEFIK_VERSION}
 
 ## include mysql client so we can connect to mysql

@@ -95,7 +95,7 @@ services:
             constraints:
                 - node.labels.region == ir
 
-      ### INFLUXDB ###
+    ### INFLUXDB ###
     influxdb:
       image: ${SWARM_REGISTERY}/influxdb:latest
       build:
@@ -129,25 +129,25 @@ services:
         - "traefik.http.routers.influxdb-sec.tls=true"
         - "traefik.http.routers.influxdb-sec.service=influxdb@docker"
       deploy:
-          mode: global
-          placement:
-            constraints:
-                - node.labels.region == admin
-          labels:
-            - "traefik.enable=true"
-            - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
-            ## http
-            - "traefik.http.routers.influxdb.rule=PathPrefix(`/`)"
-            - "traefik.http.routers.influxdb.entrypoints=influxdb"
-            - "traefik.http.routers.influxdb.service=influxdb@docker"
-            - "traefik.http.services.influxdb.loadbalancer.server.port=9999"
-            - "traefik.http.routers.influxdb.middlewares=influxdb-stripprefixes"
-            ## https
-            - "traefik.http.routers.influxdb-sec.rule=PathPrefix(`/`)"
-            - "traefik.http.routers.influxdb-sec.entrypoints=influxdb"
-            - "traefik.http.routers.influxdb-sec.tls=true"
-            - "traefik.http.routers.influxdb-sec.service=influxdb@docker"
-            - "traefik.http.routers.influxdb-sec.middlewares=streaming-stripprefixes"
+            mode: global
+            placement:
+              constraints:
+                  - node.labels.region == admin
+            labels:
+              - "traefik.enable=true"
+              - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
+              ## http
+              - "traefik.http.routers.influxdb.rule=PathPrefix(`/`)"
+              - "traefik.http.routers.influxdb.entrypoints=influxdb"
+              - "traefik.http.routers.influxdb.service=influxdb@docker"
+              - "traefik.http.services.influxdb.loadbalancer.server.port=9999"
+              - "traefik.http.routers.influxdb.middlewares=influxdb-stripprefixes"
+              ## https
+              - "traefik.http.routers.influxdb-sec.rule=PathPrefix(`/`)"
+              - "traefik.http.routers.influxdb-sec.entrypoints=influxdb"
+              - "traefik.http.routers.influxdb-sec.tls=true"
+              - "traefik.http.routers.influxdb-sec.service=influxdb@docker"
+              - "traefik.http.routers.influxdb-sec.middlewares=streaming-stripprefixes"
 
     ### TRAEFIK ###
     traefik:
@@ -512,97 +512,3 @@ services:
             placement:
               constraints:
                   - node.labels.region == admin
-
-    ### REV SLIDER ###
-    ### REV SLIDER APACHE2 ####
-    revslider-apache2:
-      image: ${SWARM_REGISTERY}/revslider-apache2:latest
-      build: ./revslider/docker/apache2
-      environment:
-          - WEB_PHP_SOCKET=${REVSLIDER_APACHE2_PHP_UPSTREAM_CONTAINER}:${REVSLIDER_APACHE2_PHP_UPSTREAM_PORT}
-          - WEB_PHP_TIMEOUT=${REVSLIDER_APACHE2_PHP_UPSTREAM_TIMEOUT}
-          - WEB_ROOT=${REVSLIDER_APACHE2_DOCUMENT_ROOT}
-          - APACHE_RUNTIME_MODE=${APP_RUNTIME_MODE}
-      volumes:
-          - ${LOGS_PATH}/revslider-apache2:/var/log/apache2
-          - ${MEDIA_PATH}:/var/media
-          - ${REVSLIDER_APACHE2_APP_PATH}:/var/www
-      networks:
-          - ${BACKEND_NETWORK}
-          - ${FRONTEND_NETWORK}
-      restart: unless-stopped
-      labels:
-        - "traefik.http.middlewares.revslider-stripprefixes.stripprefix.prefixes=/revslider"
-        - "traefik.enable=true"
-        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-        # http for dev
-        - "traefik.http.routers.revslider-apache2.rule=PathPrefix(`/revslider`)"
-        - "traefik.http.routers.revslider-apache2.entrypoints=web"
-        - "traefik.http.routers.revslider-apache2.service=revslider-apache2@docker"
-        - "traefik.http.services.revslider-apache2.loadbalancer.server.port=80"
-        - "traefik.http.routers.revslider-apache2.middlewares=revslider-stripprefixes"
-        - "traefik.http.routers.revslider-apache2.middlewares=redirect-to-https"
-        # https for dev
-        - "traefik.http.routers.revslider-apache2-sec.rule=PathPrefix(`/revslider`)"
-        - "traefik.http.routers.revslider-apache2-sec.tls=true"
-        - "traefik.http.routers.revslider-apache2-sec.service=revslider-apache2@docker"
-        - "traefik.http.routers.revslider-apache2-sec.entrypoints=websecure"
-        - "traefik.http.routers.revslider-apache2-sec.middlewares=revslider-stripprefixes"
-      deploy:
-        mode: replicated
-        replicas: 1
-        placement:
-          constraints:
-              - node.labels.region == ir
-        labels:
-          - "traefik.http.middlewares.revslider-stripprefixes.stripprefix.prefixes=/revslider"
-          - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-          - "traefik.enable=true"
-          ## http
-          - "traefik.http.routers.revslider-apache2.rule=PathPrefix(`/revslider`)"
-          - "traefik.http.routers.revslider-apache2.entrypoints=web"
-          - "traefik.http.services.revslider-apache2.loadbalancer.server.port=80"
-          - "traefik.http.routers.revslider-apache2.middlewares=redirect-to-https"
-          - "traefik.http.routers.revslider-apache2.middlewares=revslider-stripprefixes"
-          ## https
-          - "traefik.http.routers.revslider-apache2-sec.rule=PathPrefix(`/revslider`)"
-          - "traefik.http.routers.revslider-apache2-sec.tls=true"
-          - "traefik.http.routers.revslider-apache2-sec.entrypoints=websecure"
-          - "traefik.http.routers.revslider-apache2-sec.service=revslider-apache2@docker"
-          - "traefik.http.services.revslider-apache2-sec.loadbalancer.server.port=80"
-          - "traefik.http.routers.revslider-apache2-sec.middlewares=revslider-stripprefixes"
-
-    ### REV SLIDER PHP-FPM ######
-    revslider-php-fpm:
-      image: ${SWARM_REGISTERY}/revslider-php-fpm:latest
-      build:
-          context: ./revslider/docker/php-fpm
-          args:
-              - PHP_VERSION=7.1
-              - PHP_TIMEZONE=${PHP_TIMEZONE}
-              - PHP_BASH=${PHP_BASH}
-              - PHP_FPM_RUNTIME_MODE=${APP_RUNTIME_MODE}
-              - PHP_INSTALL_REDIS=${PHP_INSTALL_REDIS}
-              - PHP_INSTALL_XDEBUG=${PHP_INSTALL_XDEBUG}
-              - PHP_INSTALL_GD=${PHP_INSTALL_GD}
-              - PHP_INSTALL_MYSQL=${PHP_INSTALL_MYSQL}
-              - PHP_INSTALL_INTL=${PHP_INSTALL_INTL}
-              - PHP_INSTALL_AMQLIB=${PHP_INSTALL_AMQLIB}
-              - PHP_INSTALL_PCNTL=${PHP_INSTALL_PCNTL}
-              - PHP_INSTALL_COMPOSER=${PHP_INSTALL_COMPOSER}
-              - PHP_INSTALL_BCMATH=${PHP_INSTALL_BCMATH}
-              - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
-              - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
-      volumes:
-          - ${LOGS_PATH}/revslider-php-fpm:/var/log/php-fpm
-          - ${MEDIA_PATH}:/var/media
-          - ${REVSLIDER_APACHE2_APP_PATH}:/var/www
-      networks:
-          - ${BACKEND_NETWORK}
-      restart: unless-stopped
-      deploy:
-          mode: replicated
-          replicas: 1
-          placement:
-            constraints:
-                - node.labels.region == ir

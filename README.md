@@ -35,3 +35,6 @@ a ready to load docker environment to run laravel/php applications in a cluster
 
 ## Mardiadb backup
 1. ```docker exec  $(docker ps -lqf 'name=mariadb') mysqldump -uroot -proot app | zip  /srv/larapress-online-academy/docker/.data/backups/$(date "+%b_%d_%Y_%H_%M_%S").zip -```
+
+## Influxdb remove by key
+1. ```influx delete -o app --bucket app -p '_measurement="user.wallet.windowed"' --start="2009-01-02T23:00:00Z" --stop="2039-01-02T23:00:00Z"```
