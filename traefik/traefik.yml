@@ -18,7 +18,7 @@ entryPoints:
     rtmp:
         address: ":1935"
     socketio:
-        address: ":8088"
+        address: ":8443"
 
 providers:
     docker:
