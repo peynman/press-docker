@@ -52,7 +52,7 @@ certificatesResolvers:
     letsencrypt:
         acme:
           caServer: #TRAEFIK_ACME_URL_PLACEHOLDER
-          email: admin@onlineacademy.ir
+          email: #TRAEFIK_ACME_EMAIL_PLACEHOLDER
           storage: /letsencrypt/acme.json
 
           httpChallenge:
