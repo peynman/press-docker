@@ -16,8 +16,8 @@ a ready to load docker environment to run laravel/php applications in a cluster
 2. set ```BACKEND_NETWORK``` and ```FRONTEND_NETWORK``` in ``.env`` file to ```backend``` and ```frontend```
 3. login in to registery ```docker login HOST:PORT```
 4. make all data/logs/media directories on all hosts
-    1. ```mkdir -p .data/{redis,mariadb,php-fpm,apache2,traefik,traefik/letsencrypt,influxdb,livestream}```
-    2. ```mkdir -p .media .logs/{redis,mariadb,php-fpm,apache2,traefik,influxdb,livestream}```
+    1. ```mkdir -p .data/{redis,mariadb,php-fpm,apache2,traefik,traefik,influxdb,livestream} .data/traefik/letsencrypt```
+    2. ```mkdir -p .media .logs/{redis,mariadb,php-fpm,apache2,traefik,influxdb,livestream,horizon}```
 5. run swarm stack
     1. ```docker stack deploy --with-registry-auth -c <(docker-compose config) app```
 

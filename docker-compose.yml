@@ -1,16 +1,16 @@
 version: '3.4'
 
 networks:
-    backend_local:
-        driver: bridge
-    frontend_local:
-        driver: bridge
-    backend:
-        external:
-            name: backend
-    frontend:
-        external:
-            name: frontend
+  backend_local:
+    driver: bridge
+  frontend_local:
+    driver: bridge
+  backend:
+    external:
+      name: backend
+  frontend:
+    external:
+      name: frontend
 
 services:
     ### DATABASE ####
@@ -132,7 +132,7 @@ services:
             mode: global
             placement:
               constraints:
-                  - node.labels.region == admin
+                  - node.labels.region == ${INFLUXDB_SWARM_REGION}
             labels:
               - "traefik.enable=true"
               - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
@@ -492,8 +492,7 @@ services:
       networks:
         - ${BACKEND_NETWORK}
       deploy:
-        mode: replicated
-        replicas: 1
+        mode: global
         placement:
           constraints:
               - node.labels.region == ir
