@@ -1,16 +1,16 @@
 version: '3.4'
 
 networks:
-  backend_local:
-    driver: bridge
-  frontend_local:
-    driver: bridge
-  backend:
-    external:
-      name: backend
-  frontend:
-    external:
-      name: frontend
+    backend_local:
+        driver: bridge
+    frontend_local:
+        driver: bridge
+    backend:
+        external:
+            name: backend
+    frontend:
+        external:
+            name: frontend
 
 services:
     ### DATABASE ####
