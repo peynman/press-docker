@@ -132,7 +132,7 @@ services:
             mode: global
             placement:
               constraints:
-                  - node.labels.region == ${INFLUXDB_SWARM_REGION}
+                  - node.labels.region == ir
             labels:
               - "traefik.enable=true"
               - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
@@ -492,7 +492,8 @@ services:
       networks:
         - ${BACKEND_NETWORK}
       deploy:
-        mode: global
+        mode: replicated
+        replicas: 1
         placement:
           constraints:
               - node.labels.region == ir
