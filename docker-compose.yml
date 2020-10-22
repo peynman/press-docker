@@ -132,7 +132,7 @@ services:
             mode: global
             placement:
               constraints:
-                  - node.labels.region == ir
+                  - node.labels.region == ${INFLUXDB_SWARM_REGION}
             labels:
               - "traefik.enable=true"
               - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
@@ -521,7 +521,9 @@ services:
         environment:
             - PMA_ARBITRARY=1
         ports:
-            - "${PHP_MYADMIN_PORT}:80"
+            - target: 80
+              published: ${PHP_MYADMIN_PORT}
+              mode: host
         networks:
             - ${BACKEND_NETWORK}
         deploy:
@@ -529,4 +531,4 @@ services:
             replicas: 0
             placement:
               constraints:
-                  - node.labels.region == admin
+                  - node.labels.region == ${PHP_MYADMIN_SWARM_REGION}
