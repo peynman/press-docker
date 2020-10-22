@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.5'
 
 networks:
     backend_local:
@@ -132,7 +132,7 @@ services:
             mode: global
             placement:
               constraints:
-                  - node.labels.region == ir
+                  - node.labels.region == ${INFLUXDB_SWARM_REGION}
             labels:
               - "traefik.enable=true"
               - "traefik.http.middlewares.influxdb-stripprefixes.stripprefix.prefixes=/influxdb"
