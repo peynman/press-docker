@@ -499,21 +499,21 @@ services:
               - node.labels.region == ir
 
     ### BigBlueButton ###
-    bbb-server:
-      image: ${SWARM_REGISTERY}/bbb-server:latest
-      build:
-        context: ./bigbluebutton/bbb
-      volumes:
-        - ${LOGS_PATH}/bbb:/var/log
-        - ${MEDIA_PATH}:/var/media
-      networks:
-        - ${BACKEND_NETWORK}
-      deploy:
-        mode: replicated
-        replicas: 0
-        placement:
-            constraints:
-                - node.labels.region == ir
+#    bbb-server:
+#      image: ${SWARM_REGISTERY}/bbb-server:latest
+#      build:
+#        context: ./bigbluebutton/bbb
+#      volumes:
+#        - ${LOGS_PATH}/bbb:/var/log
+#        - ${MEDIA_PATH}:/var/media
+#      networks:
+#        - ${BACKEND_NETWORK}
+#      deploy:
+#        mode: replicated
+#        replicas: 0
+#        placement:
+#            constraints:
+#                - node.labels.region == ir
 
     ### PHPMYADMIN ###
     phpmyadmin:
