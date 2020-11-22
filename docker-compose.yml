@@ -515,6 +515,27 @@ services:
 #            constraints:
 #                - node.labels.region == ir
 
+    ### PHPMYREDIS ###
+    phpredisadmin:
+      image: erikdubbelboer/phpredisadmin
+      environment:
+        - REDIS_1_HOST=redis
+        - REDIS_1_AUTH=${REDIS_PASSWORD}
+        - ADMIN_USER=${PHMYREDIS_USER}
+        - ADMIN_PASS=${PHMYREDIS_PASS}
+      ports:
+        - target: 80
+          published: 8082
+          mode: host
+      networks:
+        - ${BACKEND_NETWORK}
+      deploy:
+        mode: replicated
+        replicas: 0
+        placement:
+          constraints:
+              - node.labels.region == ${PHP_MYADMIN_SWARM_REGION}
+
     ### PHPMYADMIN ###
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
