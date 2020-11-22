@@ -541,6 +541,7 @@ services:
         image: phpmyadmin/phpmyadmin
         environment:
             - PMA_ARBITRARY=1
+            - UPLOAD_LIMIT=${PHP_MYADMIN_UPLOAD_LIMIT}
         ports:
             - target: 80
               published: ${PHP_MYADMIN_PORT}
