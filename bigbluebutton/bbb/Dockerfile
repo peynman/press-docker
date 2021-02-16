@@ -1,21 +1,29 @@
-FROM alpine:3.8
+FROM ubuntu:18.04
 
-RUN apk update
+RUN apt update && apt install -y language-pack-en
+RUN update-locale LANG=en_US.UTF-8
+RUN export LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8
 
-# Install language pack
-RUN apk --no-cache add ca-certificates wget && \
-    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
-    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-2.25-r0.apk && \
-    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-bin-2.25-r0.apk && \
-    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-i18n-2.25-r0.apk && \
-    apk add glibc-bin-2.25-r0.apk glibc-i18n-2.25-r0.apk glibc-2.25-r0.apk
+RUN apt -y install haveged software-properties-common
+RUN add-apt-repository ppa:bigbluebutton/support -y
+RUN add-apt-repository ppa:rmescandon/yq -y
+RUN add-apt-repository ppa:libreoffice/ppa
+RUN apt update
 
-# Iterate through all locale and install it
-# Note that locale -a is not available in alpine linux, use `/usr/glibc-compat/bin/locale -a` instead
-COPY ./locale.md /locale.md
-RUN cat /locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {}.UTF-8
+RUN apt install -y curl
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
+RUN apt install -y nodejs
 
-# Set the lang, you can also specify it as as environment variable through docker-compose.yml
-ENV LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8
+RUN apt install wget
+RUN wget https://ubuntu.bigbluebutton.org/repo/bigbluebutton.asc -O- | apt-key add -
+RUN echo "deb https://packages-eu.bigbluebutton.org/xenial-22/ bigbluebutton-xenial main" | tee /etc/apt/sources.list.d/bigbluebutton.list
+RUN apt install -y apt-transport-https
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6657DBE0CC86BB64
+RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+RUN apt update
 
+RUN apt install -y bigbluebutton
+
+RUN bbb-conf --restart
+RUN bbb-conf --check

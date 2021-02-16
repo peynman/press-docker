@@ -1,5 +1,6 @@
 .data
 .logs
+.media
 .env
 .DS_Store
 .env.production

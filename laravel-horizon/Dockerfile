@@ -47,7 +47,7 @@ RUN if [ ${PHP_INSTALL_INTL} = true ]; then \
 
 ARG PHP_INSTALL_COMPOSER=false
 RUN if [ ${PHP_INSTALL_COMPOSER} = true ]; then \
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --2 \
 ;fi
 
 ARG PHP_INSTALL_BCMATH=false
