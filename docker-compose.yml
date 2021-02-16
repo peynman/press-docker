@@ -37,7 +37,7 @@ services:
             mode: global
             placement:
               constraints:
-                  - node.labels.region == ir
+                  - node.labels.region == ${APP_SWARM_REGION}
 
     ### REDIS ######
     redis:
@@ -62,7 +62,7 @@ services:
             mode: global
             placement:
               constraints:
-                  - node.labels.region == ir
+                  - node.labels.region == ${APP_SWARM_REGION}
 
     ### TELEGRAF ###
     telegraf:
@@ -93,7 +93,7 @@ services:
           mode: global
           placement:
             constraints:
-                - node.labels.region == ir
+                - node.labels.region == ${APP_SWARM_REGION}
 
     ### INFLUXDB ###
     influxdb:
@@ -201,7 +201,7 @@ services:
           mode: global
           placement:
               constraints:
-                  - node.labels.region == ir
+                  - node.labels.region == ${APP_SWARM_REGION}
 
     ### LIVESTREAM ###
     livestream:
@@ -248,7 +248,7 @@ services:
         mode: global
         placement:
             constraints:
-                - node.labels.region == ir
+                - node.labels.region == ${APP_SWARM_REGION}
         labels:
           - "traefik.enable=true"
           - "traefik.http.middlewares.streaming-stripprefixes.stripprefix.prefixes=/upstream,/livestream"
@@ -307,7 +307,7 @@ services:
           replicas: 5
           placement:
             constraints:
-                - node.labels.region == ir
+                - node.labels.region == ${APP_SWARM_REGION}
           labels:
             - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
             - "traefik.enable=true"
@@ -371,7 +371,7 @@ services:
         mode: global
         placement:
           constraints:
-              - node.labels.region == ir
+              - node.labels.region == ${APP_SWARM_REGION}
         labels:
           - "traefik.enable=true"
           - "traefik.http.middlewares.echo-stripprefixes.stripprefix.prefixes=/echo"
@@ -427,10 +427,10 @@ services:
       restart: unless-stopped
       deploy:
           mode: replicated
-          replicas: 5
+          replicas: ${PHP_FPM_SCALE}
           placement:
             constraints:
-                - node.labels.region == ir
+                - node.labels.region == ${APP_SWARM_REGION}
 
     ### laravel-horizon ######
     laravel-horizon:
@@ -463,7 +463,7 @@ services:
         mode: global
         placement:
           constraints:
-              - node.labels.region == ir
+              - node.labels.region == ${APP_SWARM_REGION}
 
     ### laravel-scheduler ######
     laravel-scheduler:
@@ -492,11 +492,10 @@ services:
       networks:
         - ${BACKEND_NETWORK}
       deploy:
-        mode: replicated
-        replicas: 1
+        mode: global
         placement:
           constraints:
-              - node.labels.region == ir
+              - node.labels.region == ${APP_SWARM_REGION}
 
     ### BigBlueButton ###
     bbb-server:
@@ -515,7 +514,7 @@ services:
         replicas: 0
         placement:
             constraints:
-                - node.labels.region == ir
+                - node.labels.region == ${APP_SWARM_REGION}
 
     ### POSTGRES ###
     postgres:
@@ -536,10 +535,10 @@ services:
         - ${BACKEND_NETWORK}
       deploy:
         mode: global
-        replicas: 1
+        replicas: 0
         placement:
           constraints:
-              - node.labels.region == ir
+              - node.labels.region == ${APP_SWARM_REGION}
 
     ### PHPMYREDIS ###
     phpredisadmin:
@@ -560,7 +559,7 @@ services:
         replicas: 0
         placement:
           constraints:
-              - node.labels.region == ${PHP_MYADMIN_SWARM_REGION}
+              - node.labels.region == ${ADMIN_SWARM_REGION}
 
     ### PHPMYADMIN ###
     phpmyadmin:
@@ -579,4 +578,4 @@ services:
             replicas: 0
             placement:
               constraints:
-                  - node.labels.region == ${PHP_MYADMIN_SWARM_REGION}
+                  - node.labels.region == ${ADMIN_SWARM_REGION}
