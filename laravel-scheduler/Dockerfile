@@ -29,11 +29,6 @@ RUN if [ ${PHP_INSTALL_REDIS} = true ]; then \
     &&  docker-php-ext-enable redis \
 ;fi
 
-ARG PHP_INSTALL_XDEBUG=false
-RUN if [ ${PHP_INSTALL_XDEBUG} = true ]; then \
-    pecl install -f xdebug && docker-php-ext-enable xdebug \
-;fi
-
 ARG PHP_INSTALL_MYSQL=false
 RUN if [ ${PHP_INSTALL_MYSQL} = true ]; then \
     docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable pdo_mysql \
@@ -46,8 +41,9 @@ RUN if [ ${PHP_INSTALL_INTL} = true ]; then \
 ;fi
 
 ARG PHP_INSTALL_COMPOSER=false
+ARG PHP_INSTALL_COMPOSER_VERSION=1
 RUN if [ ${PHP_INSTALL_COMPOSER} = true ]; then \
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --2 \
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer --${PHP_INSTALL_COMPOSER_VERSION} \
 ;fi
 
 ARG PHP_INSTALL_BCMATH=false
@@ -63,7 +59,7 @@ RUN if [ ${PHP_INSTALL_PCNTL} = true ]; then \
 ARG PHP_INSTALL_AMQLIB=false
 RUN if [ ${PHP_INSTALL_AMQLIB} = true ]; then \
     apk add --no-cache rabbitmq-c-dev && \
-    pecl install amqp && \
+    pecl install http://pecl.php.net/get/amqp-1.10.2.tgz && \
     rm -rf /tmp/pear && \
     docker-php-ext-enable amqp \
 ;fi
@@ -80,6 +76,23 @@ RUN if [ ${PHP_INSTALL_SOAP} = true ]; then \
     apk add --no-cache libxml2-dev && \
     docker-php-ext-install xml soap &&\
     docker-php-ext-install xml soap \
+;fi
+
+ARG PHP_INSTALL_SOCKETS=false
+RUN if [ ${PHP_INSTALL_SOCKETS} = true ]; then \
+    apk add --no-cache libxml2-dev &&\
+    docker-php-ext-install sockets &&\
+    docker-php-ext-enable sockets \
+;fi
+
+ARG PHP_INSTALL_GIT=false
+RUN if [ ${PHP_INSTALL_GIT} = true ]; then \
+    apk add --no-cache git \
+;fi
+
+ARG PHP_INSTALL_XDEBUG=false
+RUN if [ ${PHP_INSTALL_XDEBUG} = true ]; then \
+    pecl install -f xdebug-3.0.3 && docker-php-ext-enable xdebug \
 ;fi
 
 ARG PHP_TIMEZONE=UTC

@@ -418,6 +418,9 @@ services:
               - PHP_INSTALL_BCMATH=${PHP_INSTALL_BCMATH}
               - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
               - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
+              - PHP_INSTALL_SOCKETS=${PHP_INSTALL_SOCKETS}
+              - PHP_INSTALL_COMPOSER_VERSION=${PHP_INSTALL_COMPOSER_VERSION}
+              - PHP_INSTALL_GIT=${PHP_INSTALL_GIT}
       volumes:
           - ${LOGS_PATH}/php-fpm:/var/log/php-fpm
           - ${MEDIA_PATH}:/var/media
@@ -453,6 +456,10 @@ services:
               - PHP_INSTALL_BCMATH=${PHP_INSTALL_BCMATH}
               - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
               - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
+              - PHP_INSTALL_SOCKETS=${PHP_INSTALL_SOCKETS}
+              - PHP_INSTALL_COMPOSER_VERSION=${PHP_INSTALL_COMPOSER_VERSION}
+              - PHP_INSTALL_GIT=${PHP_INSTALL_GIT}
+              - FFMPEG_VERSION=${FFMPEG_VERSION}
       volumes:
           - ${LOGS_PATH}/horizon:/var/log
           - ${MEDIA_PATH}:/var/media
@@ -486,6 +493,10 @@ services:
               - PHP_INSTALL_BCMATH=${PHP_INSTALL_BCMATH}
               - PHP_INSTALL_ZIP=${PHP_INSTALL_ZIP}
               - PHP_INSTALL_SOAP=${PHP_INSTALL_SOAP}
+              - PHP_INSTALL_SOCKETS=${PHP_INSTALL_SOCKETS}
+              - PHP_INSTALL_COMPOSER_VERSION=${PHP_INSTALL_COMPOSER_VERSION}
+              - PHP_INSTALL_GIT=${PHP_INSTALL_GIT}
+              - FFMPEG_VERSION=${FFMPEG_VERSION}
       volumes:
           - ${MEDIA_PATH}:/var/media
           - ${APACHE2_APP_PATH}:/var/www
