@@ -28,13 +28,44 @@ a ready to load docker environment to run laravel/php applications in a cluster
 ### Generate Dev Certificate
 1. ```cd traefik/certs && openssl req -x509 -out localhost.crt -keyout localhost.key -newkey rsa:2048 -nodes -sha256 -subj '/CN=*.host.local' -extensions EXT -config <(printf "[dn]\nCN=*.host.local\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:*.host.local\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth")```
 
-## Setup Laravel application
-1. ```docker exec  $(docker ps -lqf 'name=php-fpm') php artisan vendor:publish```
-2. ```docker exec  $(docker ps -lqf 'name=php-fpm') php artisan migrate```
-
-
 ## Mardiadb backup
 1. ```docker exec  $(docker ps -lqf 'name=mariadb') mysqldump -uroot -proot app | zip  /srv/larapress-online-academy/docker/.data/backups/$(date "+%b_%d_%Y_%H_%M_%S").zip -```
 
 ## Influxdb remove by key
 1. ```influx delete -o app --bucket app -p '_measurement="user.wallet.windowed"' --start="2009-01-02T23:00:00Z" --stop="2039-01-02T23:00:00Z"```
+
+
+# Laravel Project
+## Setup Laravel application
+1. ```docker exec  $(docker ps -lqf 'name=php-fpm') php artisan migrate```
+
+## Setup LaravelEcho as Boardcaster
+1. Require pusher if you want to use echo ``composer require pusher/pusher-php-server "^5.0"``
+1. Set ```BROADCAST_DRIVER=pusher``` in .env
+1. Add echo in ``broadcast.php``
+    ```
+    'options' => [
+        'cluster' => null,
+        'encrypted' => true,
+        'useTLS' => false,
+        'host' => 'laravel-echo',
+        'port' => env('ECHO_PORT', 6001),
+        'scheme' => 'http'
+    ],
+    ```
+1. Set ``PUSHER_APP_ID=`` and ``PUSHER_APP_KEY=`` in .env
+
+## Setup PHPRedis and Session
+1. ``composer require predis/predis``
+1. Set redis password ``REDIS_PASSWORD=redispassword`` in .env
+1. Add session-db to redis connections in ``database.php``
+    ```
+    'session-db' => [
+        'url' => env('REDIS_URL'),
+        'host' => env('REDIS_HOST', '127.0.0.1'),
+        'password' => env('REDIS_PASSWORD', null),
+        'port' => env('REDIS_PORT', '6379'),
+        'database' => env('REDIS_SESSION_DB', '2'),
+    ],
+    ```
+1. Set session connection in .env ``SESSION_CONNECTION=session-db``
