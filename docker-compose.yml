@@ -21,6 +21,7 @@ services:
             args:
                 - MARIADB_VERSION=${MARIADB_VERSION}
                 - MARIADB_RUNTIME_MODE=${APP_RUNTIME_MODE}
+                - MARIADB_DBT_NAME=${MARIADB_DBT_NAME}
         environment:
             - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
             - MYSQL_ALLOW_EMPTY_PASSWORD=no
@@ -187,13 +188,6 @@ services:
           - target: 443
             published: ${TRAEFIK_WEB_SECURED_PORT}
             mode: host
-          - target: 8086
-            published: ${TRAEFIK_DASHBOARD_PORT}
-            mode: host
-          - target: 1935
-            published: 1935
-            protocol: tcp
-            mode: host
           - target: ${ECHO_PORT}
             published: ${ECHO_PORT}
             mode: host
@@ -202,6 +196,7 @@ services:
           placement:
               constraints:
                   - node.labels.region == ${APP_SWARM_REGION}
+      restart: unless-stopped
 
     ### LIVESTREAM ###
     livestream:
@@ -217,7 +212,6 @@ services:
       networks:
           - ${BACKEND_NETWORK}
           - ${FRONTEND_NETWORK}
-      restart: unless-stopped
       labels:
           - "traefik.enable=true"
           - "traefik.http.middlewares.streaming-stripprefixes.stripprefix.prefixes=/upstream,/livestream"
@@ -279,6 +273,7 @@ services:
           - WEB_PHP_TIMEOUT=${APACHE2_PHP_UPSTREAM_TIMEOUT}
           - WEB_ROOT=${APACHE2_DOCUMENT_ROOT}
           - APACHE_RUNTIME_MODE=${APP_RUNTIME_MODE}
+          - APACHE2_VHOSTS_PATH=${APACHE2_VHOSTS_PATH}
       volumes:
           - ${LOGS_PATH}/apache2:/var/log/apache2
           - ${MEDIA_PATH}:/var/media
@@ -396,6 +391,7 @@ services:
           - "traefik.http.routers.echo-sec.tls=true"
           - "traefik.http.routers.echo-sec.middlewares=echo-stripprefixes"
           - "traefik.http.routers.echo-sec.service=echo@docker"
+      restart: unless-stopped
 
     ### PHP-FPM ######
     php-fpm:
@@ -471,6 +467,7 @@ services:
         placement:
           constraints:
               - node.labels.region == ${APP_SWARM_REGION}
+      restart: unless-stopped
 
     ### laravel-scheduler ######
     laravel-scheduler:
@@ -507,25 +504,7 @@ services:
         placement:
           constraints:
               - node.labels.region == ${APP_SWARM_REGION}
-
-    ### BigBlueButton ###
-    bbb-server:
-      image: ${SWARM_REGISTERY}/bbb-server:latest
-      build:
-        context: ./bigbluebutton/bbb
-      environment:
-        - LANG=en_US.UTF-8
-      volumes:
-        - ${LOGS_PATH}/bbb:/var/log/
-        - ${MEDIA_PATH}:/var/media
-      networks:
-        - ${BACKEND_NETWORK}
-      deploy:
-        mode: replicated
-        replicas: 0
-        placement:
-            constraints:
-                - node.labels.region == ${APP_SWARM_REGION}
+      restart: unless-stopped
 
     ### POSTGRES ###
     postgres:
@@ -538,6 +517,10 @@ services:
           - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
           - POSTGRES_USER=${POSTGRES_USER}
           - POSTGRES_DB=${POSTGRES_DB}
+          # bbb-greenlight db
+          - BBB_GL_DB_DB=${BBB_GL_DB_DB}
+          - BBB_GL_DB_USER=${BBB_GL_DB_USER}
+          - BBB_GL_DB_PASS=${BBB_GL_DB_PASS}
       restart: unless-stopped
       volumes:
         - "${DATA_PATH}/postgres:/var/lib/postgresql/data"
@@ -551,6 +534,54 @@ services:
           constraints:
               - node.labels.region == ${APP_SWARM_REGION}
 
+    origin:
+      build:
+        context: ./ovenmedia
+      ports:
+      - "1935:1935/tcp"
+      - "3333:3333/tcp"
+      - "8080:8080/tcp"
+      - "9000:9000/tcp"
+      - "4000-4005:4000-4005/udp"
+      - "10006-10010:10006-10010/udp"
+      environment:
+      - OME_ORIGIN_PORT=9000
+      - OME_RTMP_PROV_PORT=1935
+      - OME_HLS_STREAM_PORT=8080
+      - OME_DASH_STREAM_PORT=8080
+      - OME_SIGNALLING_PORT=3333
+      - OME_MPEGTS_PROV_PORT=4000-4005/udp
+      - OME_ICE_CANDIDATES=*:10006-10010/udp
+      command: /opt/ovenmediaengine/bin/OvenMediaEngine -c origin_conf
+
+    edge:
+      build:
+        context: ./ovenmedia
+      ports:
+      - "3334:3334/tcp"
+      - "8090:8090/tcp"
+      - "10000-10005:10000-10005/udp"
+      environment:
+      - DEFAULT_ORIGIN_SERVER=127.0.0.1
+      - OME_HLS_STREAM_PORT=8090
+      - OME_DASH_STREAM_PORT=8090
+      - OME_SIGNALLING_PORT=3334
+      - OME_ICE_CANDIDATES=*:10000-10005/udp
+      command: /opt/ovenmediaengine/bin/OvenMediaEngine -c edge_conf
+
+    ### PG Admin ###
+    pgadmin:
+      image: dpage/pgadmin4
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_USER}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_USER}
+      ports:
+          - target: 80
+            published: ${PHMYREDIS_PORT}
+            mode: host
+      networks:
+        - ${BACKEND_NETWORK}
+
     ### PHPMYREDIS ###
     phpredisadmin:
       image: erikdubbelboer/phpredisadmin
@@ -561,7 +592,7 @@ services:
         - ADMIN_PASS=${PHMYREDIS_PASS}
       ports:
         - target: 80
-          published: 8082
+          published: ${PHMYREDIS_PORT}
           mode: host
       networks:
         - ${BACKEND_NETWORK}

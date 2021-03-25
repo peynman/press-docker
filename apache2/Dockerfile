@@ -10,11 +10,8 @@ RUN sed -i '/LoadModule info_module/s/^#//g' /usr/local/apache2/conf/httpd.conf
 RUN sed -i '/#Include conf\/extra\/httpd-vhosts.conf/s/^#//g' /usr/local/apache2/conf/httpd.conf
 
 ARG APACHE_RUNTIME_MODE=debug
-COPY httpd-vhosts-${APACHE_RUNTIME_MODE}.conf /usr/local/apache2/conf/extra/httpd-vhosts.conf
-
-RUN mkdir /var/media
-RUN chown www-data:www-data -R /var/media
-RUN chmod 755 -R /var/media
+ARG APACHE_RUNTIME_VHOST_PATH=vhosts/laravel
+COPY  ${APACHE_RUNTIME_VHOST_PATH}/httpd-vhosts-${APACHE_RUNTIME_MODE}.conf /usr/local/apache2/conf/extra/httpd-vhosts.conf
 
 WORKDIR /var/www/
 
