@@ -417,6 +417,7 @@ services:
               - PHP_INSTALL_SOCKETS=${PHP_INSTALL_SOCKETS}
               - PHP_INSTALL_COMPOSER_VERSION=${PHP_INSTALL_COMPOSER_VERSION}
               - PHP_INSTALL_GIT=${PHP_INSTALL_GIT}
+              - PHP_INSTALL_OPCACHE=${PHP_INSTALL_OPCACHE}
       volumes:
           - ${LOGS_PATH}/php-fpm:/var/log/php-fpm
           - ${MEDIA_PATH}:/var/media

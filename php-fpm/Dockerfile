@@ -1,4 +1,4 @@
-ARG PHP_VERISON=7.4
+ARG PHP_VERISON=8.0.3
 
 FROM php:${PHP_VERISON}-fpm-alpine
 
@@ -83,18 +83,20 @@ RUN if [ ${PHP_INSTALL_GIT} = true ]; then \
     apk add --no-cache git \
 ;fi
 
-ARG PHP_INSTALL_AMQLIB=false
-RUN if [ ${PHP_INSTALL_AMQLIB} = true ]; then \
-    apk add --no-cache rabbitmq-c-dev && \
-    pecl install http://pecl.php.net/get/amqp-1.10.2.tgz && \
-    rm -rf /tmp/pear && \
-    docker-php-ext-enable amqp \
-;fi
-
 ARG PHP_INSTALL_XDEBUG=false
 RUN if [ ${PHP_INSTALL_XDEBUG} = true ]; then \
     pecl install -f xdebug-3.0.3 && docker-php-ext-enable xdebug \
 ;fi
+
+ARG PHP_INSTALL_OPCACHE=false
+RUN if [ ${PHP_INSTALL_OPCACHE} = true ]; then \
+    docker-php-ext-install opcache \
+;fi
+RUN if [ ${PHP_INSTALL_OPCACHE} = true ]; then \
+    curl -s http://gordalina.github.io/cachetool/downloads/cachetool.phar -o /usr/bin/cachetool.phar &&\
+    chmod +x /usr/bin/cachetool.phar \
+;fi
+
 
 ARG PHP_TIMEZONE=UTC
 ENV TIMEZONE=${PHP_TIMEZONE}
@@ -103,5 +105,10 @@ ENV TIMEZONE=${PHP_TIMEZONE}
 ARG PHP_FPM_RUNTIME_MODE=production
 COPY php-init-${PHP_FPM_RUNTIME_MODE}.ini /usr/local/etc/php/conf.d/50-setting.ini
 COPY php-fpm-${PHP_FPM_RUNTIME_MODE}.conf /usr/local/etc/php-fpm.d/www.conf
+
+COPY opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+ARG OPCACHE_PLACEHOLDER=${PHP_INSTALL_OPCACHE}
+RUN sed -i "s~#OPCACHE_PLACEHOLDER~${OPCACHE_PLACEHOLDER}~g" /usr/local/etc/php/conf.d/opcache.ini
 
 WORKDIR /var/www/
