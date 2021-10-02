@@ -9,8 +9,12 @@ rest:
 entryPoints:
     web:
         address: ":80"
+        forwardedHeaders:
+            insecure: true
     websecure:
         address: ":443"
+        forwardedHeaders:
+            insecure: true
     influxdb:
         address: ":8087"
     traefik:
@@ -19,6 +23,8 @@ entryPoints:
         address: ":1935"
     socketio:
         address: ":8443"
+        forwardedHeaders:
+            insecure: true
 
 providers:
     docker:

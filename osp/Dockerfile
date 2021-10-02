@@ -1,0 +1,1 @@
+FROM deamos/openstreamingplatform:latest

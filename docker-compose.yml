@@ -284,13 +284,13 @@ services:
       restart: unless-stopped
       labels:
         - "traefik.enable=true"
-        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+#        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
         # http for dev
         - "traefik.http.routers.apache2.rule=PathPrefix(`/`)"
         - "traefik.http.routers.apache2.entrypoints=web"
         - "traefik.http.routers.apache2.service=apache2@docker"
         - "traefik.http.services.apache2.loadbalancer.server.port=80"
-        - "traefik.http.routers.apache2.middlewares=redirect-to-https"
+#        - "traefik.http.routers.apache2.middlewares=redirect-to-https"
         # https for dev
         - "traefik.http.routers.apache2-sec.rule=PathPrefix(`/`)"
         - "traefik.http.routers.apache2-sec.tls=true"
@@ -299,7 +299,7 @@ services:
         - "traefik.http.services.apache2-sec.loadbalancer.server.port=80"
       deploy:
           mode: replicated
-          replicas: 5
+          replicas: ${APACHE2_SCALE}
           placement:
             constraints:
                 - node.labels.region == ${APP_SWARM_REGION}
@@ -507,6 +507,27 @@ services:
               - node.labels.region == ${APP_SWARM_REGION}
       restart: unless-stopped
 
+    osp:
+      image: ${SWARM_REGISTERY}/osp:latest
+      build:
+        context: ./osp
+      environment:
+        - REDIS_HOST=${OSP_REDIS_HOST}
+        - REDIS_PORT=${OSP_REDIS_PORT}
+        - REDIS_PASSWORD=${OSP_REDIS_PASSWORD}
+        - OSP_ALLOWREGISTRATION=${OSP_ALLOWREGISTRATION}
+        - OSP_REQUIREVERIFICATION=${OSP_REQUIREVERIFICATION}
+      restart: unless-stopped
+      ports:
+        - 1935:1935
+        - 80:80
+        - 443:443
+      networks:
+        - ${BACKEND_NETWORK}
+      volumes:
+        - "${DATA_PATH}/osp/www:/var/www/"
+        - "${DATA_PATH}/osp/db:/opt/osp/db/"
+
     ### POSTGRES ###
     postgres:
       image: ${SWARM_REGISTERY}/postgres:latest
@@ -598,8 +619,7 @@ services:
       networks:
         - ${BACKEND_NETWORK}
       deploy:
-        mode: replicated
-        replicas: 0
+        mode: global
         placement:
           constraints:
               - node.labels.region == ${ADMIN_SWARM_REGION}
@@ -617,8 +637,7 @@ services:
         networks:
             - ${BACKEND_NETWORK}
         deploy:
-            mode: replicated
-            replicas: 0
-            placement:
+          mode: global
+          placement:
               constraints:
                   - node.labels.region == ${ADMIN_SWARM_REGION}

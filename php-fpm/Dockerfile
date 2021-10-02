@@ -1,6 +1,6 @@
-ARG PHP_VERISON=8.0.3
+ARG PHP_VERSION=8.0.3
 
-FROM php:${PHP_VERISON}-fpm-alpine
+FROM php:${PHP_VERSION}-fpm-alpine
 
 ## always clear cache or alpine apk update may fail
 RUN rm -rf /var/cache/apk/* && \

@@ -1,7 +1,7 @@
-ARG PHP_VERISON=7.4
+ARG PHP_VERSION=7.4
 ##########################
 # Build the release image.
-FROM php:${PHP_VERISON}-alpine
+FROM php:${PHP_VERSION}-alpine
 
 RUN apk update
 RUN apk add --no-cache $PHPIZE_DEPS
