@@ -1,6 +1,0 @@
-[submodule "greenlight"]
-	path = greenlight
-	url = git@github.com:peynman/greenlight.git
-[submodule "bbb"]
-	path = bbb
-	url = https://github.com/bigbluebutton/bigbluebutton.git
