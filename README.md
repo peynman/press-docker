@@ -15,7 +15,7 @@ a ready to load docker environment to run laravel/php applications in a cluster
 1. create overlay networks
     1. ```docker network create --attachable -d overlay backend```
     2. ```docker network create --attachable -d overlay frontend```
-    3. if you want to connect from compose instances add ```--attachabl``` flag
+    3. if you want to connect from compose instances add ```--attachable``` flag
 2. set ```BACKEND_NETWORK``` and ```FRONTEND_NETWORK``` in ``.env`` file to ```backend``` and ```frontend```
 3. login in to registery ```docker login HOST:PORT```
 4. make all data/logs/media directories on all hosts
@@ -23,7 +23,7 @@ a ready to load docker environment to run laravel/php applications in a cluster
     2. ```mkdir -p .media .logs/{redis,mariadb,php-fpm,apache2,traefik,influxdb,livestream,horizon}```
 5. run swarm stack
     1. ```docker stack deploy --with-registry-auth -c <(docker-compose config) app```
-
+    2. custom swarm yaml ```docker stack deploy --with-registry-auth -c <(docker-compose -f swarm.yml config) app```
 ### Setup Xdebug VSCode
 1. add XDEBUG_SESSION to EncryptCookies middleware in laravel App\Http\Middleware\EncryptCookies
     1. ```protected $except = [ 'XDEBUG_SESSION'];```
