@@ -97,7 +97,6 @@ RUN if [ ${PHP_INSTALL_OPCACHE} = true ]; then \
     chmod +x /usr/bin/cachetool.phar \
 ;fi
 
-
 ARG PHP_TIMEZONE=UTC
 ENV TIMEZONE=${PHP_TIMEZONE}
 
@@ -105,10 +104,8 @@ ENV TIMEZONE=${PHP_TIMEZONE}
 ARG PHP_FPM_RUNTIME_MODE=production
 COPY php-init-${PHP_FPM_RUNTIME_MODE}.ini /usr/local/etc/php/conf.d/50-setting.ini
 COPY php-fpm-${PHP_FPM_RUNTIME_MODE}.conf /usr/local/etc/php-fpm.d/www.conf
-
 COPY opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
-ARG OPCACHE_PLACEHOLDER=${PHP_INSTALL_OPCACHE}
-RUN sed -i "s~#OPCACHE_PLACEHOLDER~${OPCACHE_PLACEHOLDER}~g" /usr/local/etc/php/conf.d/opcache.ini
+RUN sed -i "s~#OPCACHE_PLACEHOLDER~${PHP_INSTALL_OPCACHE}~g" /usr/local/etc/php/conf.d/opcache.ini
 
 WORKDIR /var/www/

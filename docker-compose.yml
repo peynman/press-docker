@@ -212,6 +212,13 @@ services:
       networks:
           - ${BACKEND_NETWORK}
           - ${FRONTEND_NETWORK}
+      ports:
+          - target: 80
+            published: 80
+            mode: host
+          - target: 1935
+            published: 1935
+            mode: host
       labels:
           - "traefik.enable=true"
           - "traefik.http.middlewares.streaming-stripprefixes.stripprefix.prefixes=/upstream,/livestream"
